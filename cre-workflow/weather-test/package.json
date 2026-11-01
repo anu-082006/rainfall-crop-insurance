@@ -1,0 +1,23 @@
+{
+  "name": "weather-test",
+  "version": "1.0.0",
+  "description": "Historical rainfall data fetcher and validator using Open-Meteo API",
+  "type": "module",
+  "main": "weather.ts",
+  "scripts": {
+    "start": "node --experimental-strip-types weather.ts",
+    "test": "node --experimental-strip-types weather.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "open-meteo",
+    "rainfall",
+    "crop-insurance"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "typescript": "^5.7.0"
+  }
+}
+

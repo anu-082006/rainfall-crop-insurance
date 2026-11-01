@@ -3,5 +3,16 @@ out/
 cache/
 broadcast/*/31337/
 
-# Secrets
+# Node & Bun
+node_modules/
+dist/
+
+# CRE Build & WASM Artifacts
+.cre_build_tmp*
+*.wasm
+*.tmp.js
+
+# Secrets & Local Config
 .env
+.env.local
+.env.*.local

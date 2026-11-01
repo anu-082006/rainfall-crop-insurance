@@ -23,6 +23,11 @@ contract RainfallReportReceiver is ReceiverTemplate {
     }
 
     function _processReport(bytes calldata report) internal override {
+        // If a 109-byte Keystone envelope header is present (envelope version 1), unwrap payload
+        if (report.length > 109 && report[0] == 0x01) {
+            report = report[109:];
+        }
+
         (uint8 version, uint256 policyId, uint64 startTime, uint64 endTime, uint256 rainfallMm) =
             abi.decode(report, (uint8, uint256, uint64, uint64, uint256));
 

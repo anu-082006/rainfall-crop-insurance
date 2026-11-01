@@ -1,0 +1,26 @@
+# ==========================================================================
+# CRE WORKFLOW SETTINGS FILE (Chainlink Runtime Environment)
+# ==========================================================================
+local-settings:
+  user-workflow:
+    workflow-name: "rainfall-workflow"
+  workflow-artifacts:
+    workflow-path: "./src/main.ts"
+    config-path: "./config.staging.json"
+    secrets-path: ""
+
+staging-settings:
+  user-workflow:
+    workflow-name: "rainfall-workflow"
+  workflow-artifacts:
+    workflow-path: "./src/main.ts"
+    config-path: "./config.staging.json"
+    secrets-path: ""
+
+production-settings:
+  user-workflow:
+    workflow-name: "rainfall-workflow"
+  workflow-artifacts:
+    workflow-path: "./src/main.ts"
+    config-path: "./config.staging.json"
+    secrets-path: ""
