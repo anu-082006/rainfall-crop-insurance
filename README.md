@@ -174,3 +174,4 @@ bun run typecheck
 | **11. Wrong policy ID / dates** | Contract rejects mismatched parameters | **PASS** | Tested in `CropInsurance.t.sol` |
 | **12. Valid report submission** | Contract accepts report and records rainfall | **PASS** | Tx broadcast confirmed on Anvil (`reported: true`, `17 mm`) |
 | **13. Duplicate report submission** | Rejects subsequent report submissions | **PASS** | Contract reverts with `ReportAlreadyReceived(policyId)` |
+
