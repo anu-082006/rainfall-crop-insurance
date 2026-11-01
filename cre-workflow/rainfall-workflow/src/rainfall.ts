@@ -1,13 +1,13 @@
-import type { DailyRainfallRecord } from './weather'
+import type { DailyRainfallRecord, HourlyRainfallRecord } from './weather'
 
 // ─── Documented Rounding Rule ───────────────────────────────
 /**
  * OFFICIAL TEAM ROUNDING RULE:
- * 1. Accumulate daily precipitation values in high-precision (hundredths of a millimeter,
+ * 1. Accumulate precipitation values in high-precision (hundredths of a millimeter,
  *    matching Open-Meteo's 0.01 mm precision) to prevent floating-point accumulation drift.
- * 2. Sum all daily values across the entire observation window.
+ * 2. Sum all observation values (daily or hourly) across the exact policy coverage window.
  * 3. Apply nearest-integer rounding (standard half-up: Math.round) ONCE to the final cumulative total,
- *    rather than rounding each day independently.
+ *    rather than rounding each observation period independently.
  * 4. Verify the result is a non-negative integer suitable for Solidity uint256 storage.
  *
  * Example:
@@ -19,19 +19,23 @@ import type { DailyRainfallRecord } from './weather'
  *   32.8 mm -> 33 mm
  */
 export const ROUNDING_RULE_DESCRIPTION =
-  'Cumulative nearest-integer rounding: sum all daily values with 2-decimal precision, then round the final total once using Math.round().'
+  'Cumulative nearest-integer rounding: sum all observation values with 2-decimal precision, then round the final total once using Math.round().'
+
+export type RainfallObservation = DailyRainfallRecord | HourlyRainfallRecord
 
 // ─── Output Interface ───────────────────────────────────────
 export interface RainfallCalculationResult {
-  /** Number of observation days included in the sum */
+  /** Number of observation intervals (hours or days) included in the sum */
+  observationCount: number
+  /** Number of observation days (alias for backward compatibility) */
   totalDays: number
-  /** Exact decimal sum of daily precipitation (in millimeters, 2 decimal places) */
+  /** Exact decimal sum of precipitation (in millimeters, 2 decimal places) */
   rawTotalMm: number
   /** Whole millimeter result agreed for smart contract submission */
   roundedTotalMm: number
   /** BigInt representation for Solidity uint256 ABI encoding */
   rainfallMmUint256: bigint
-  /** The verified daily records that contributed to the total */
+  /** The verified records that contributed to the total */
   dailyRecords: DailyRainfallRecord[]
   /** Description of the rule applied */
   roundingRule: string
@@ -63,18 +67,18 @@ export function roundToWholeMm(preciseTotalMm: number): number {
 }
 
 /**
- * Calculates the cumulative rainfall total from validated daily records:
+ * Calculates cumulative rainfall total from validated observations (daily or hourly):
  * 1. Validates that records array is non-empty.
- * 2. Checks every daily record: strictly rejects missing, null, undefined, NaN, non-finite, or negative values.
- * 3. Sums daily precipitation using fixed-point integer cents (0.01 mm) to avoid binary float drift.
+ * 2. Checks every record: strictly rejects missing, null, undefined, NaN, non-finite, or negative values.
+ * 3. Sums precipitation using fixed-point integer cents (0.01 mm) to avoid binary float drift.
  * 4. Applies the documented nearest-integer rounding rule once to the final sum.
  * 5. Verifies the result is a valid non-negative whole number.
  *
- * NOTE: Missing data is NEVER treated as zero rainfall. If any day is missing,
+ * NOTE: Missing data is NEVER treated as zero rainfall. If any observation is missing,
  * this function throws an error to halt the workflow.
  */
 export function calculateCumulativeRainfall(
-  records: DailyRainfallRecord[],
+  records: (DailyRainfallRecord | HourlyRainfallRecord)[],
 ): RainfallCalculationResult {
   if (!records || !Array.isArray(records) || records.length === 0) {
     throw new Error('Cannot calculate rainfall: records list is empty or undefined. Missing data is never treated as zero.')
@@ -89,10 +93,11 @@ export function calculateCumulativeRainfall(
       throw new Error(`Invalid record at index ${i}: record is missing or corrupted.`)
     }
 
-    const { date, precipitationMm } = record
+    const identifier = 'date' in record ? record.date : record.timeIso
+    const { precipitationMm } = record
 
-    if (!date || typeof date !== 'string') {
-      throw new Error(`Record at index ${i} is missing a valid date string.`)
+    if (!identifier || typeof identifier !== 'string') {
+      throw new Error(`Record at index ${i} is missing a valid date/time identifier string.`)
     }
 
     // Strict validation: Reject missing, null, undefined, NaN, or non-finite numbers
@@ -104,13 +109,13 @@ export function calculateCumulativeRainfall(
       !Number.isFinite(precipitationMm)
     ) {
       throw new Error(
-        `Missing or invalid rainfall data on ${date} (index ${i}): value is '${precipitationMm}'. Missing data is never treated as zero.`
+        `Missing or invalid rainfall data on ${identifier} (index ${i}): value is '${precipitationMm}'. Missing data is never treated as zero.`
       )
     }
 
     // Reject negative rainfall
     if (precipitationMm < 0) {
-      throw new Error(`Invalid negative rainfall recorded on ${date}: ${precipitationMm} mm.`)
+      throw new Error(`Invalid negative rainfall recorded on ${identifier}: ${precipitationMm} mm.`)
     }
 
     // Accumulate in fixed-point cents (e.g. 2.4 mm -> 240 cents)
@@ -126,11 +131,12 @@ export function calculateCumulativeRainfall(
   const rainfallMmUint256 = BigInt(roundedTotalMm)
 
   return {
+    observationCount: records.length,
     totalDays: records.length,
     rawTotalMm,
     roundedTotalMm,
     rainfallMmUint256,
-    dailyRecords: records,
+    dailyRecords: records as DailyRainfallRecord[],
     roundingRule: ROUNDING_RULE_DESCRIPTION,
   }
 }

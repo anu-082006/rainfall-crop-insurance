@@ -6,13 +6,17 @@ import {
 import { type Address, zeroAddress } from 'viem'
 import { getPrimaryEVMConfig, type Config } from './config'
 import {
+  isHourlyGranularityRequired,
   readPolicyFromContract,
   validateAndTransformPolicy,
   type ValidatedPolicy,
 } from './policy'
 import {
+  fetchValidatedHourlyWeather,
   fetchValidatedWeather,
   type DailyRainfallRecord,
+  type HourlyRainfallRecord,
+  type HourlyWeatherParams,
   type WeatherParams,
 } from './weather'
 import {
@@ -43,9 +47,9 @@ interface HttpTriggerInput {
  * 1. Receive policy ID from HTTP trigger (or fallback to workflow config).
  * 2. Read policy terms from CropInsurance.sol via CRE EVM Read.
  * 3. Validate policy existence, parameters, and ensure it has not already been reported.
- * 4. Extract geographic coordinates and observation dates.
- * 5. Fetch historical daily rainfall from Open-Meteo via CRE HTTP capability (DON consensus).
- * 6. Validate API response continuity and date coverage (reject missing/null data).
+ * 4. Determine observation granularity (hourly vs daily) based on policy duration and boundary alignment.
+ * 5. Fetch historical rainfall from Open-Meteo via CRE HTTP capability (DON consensus).
+ * 6. Validate API response continuity and date/hour coverage (reject missing/null data).
  * 7. Calculate cumulative rainfall total using documented nearest-integer rounding rule.
  * 8. ABI-encode report: (uint8 version, uint256 policyId, uint64 startTime, uint64 endTime, uint256 rainfallMm).
  * 9. Generate CRE report signed by DON threshold committee.
@@ -102,15 +106,19 @@ export const onHttpTrigger = async (
   if (evm.insuranceAddress === zeroAddress) {
     runtime.log('[Step 2] insuranceAddress is zero address; utilizing configuration fallback mode.')
     const fixedNow = 1793525996
+    const startTime = fixedNow - 8 * 86400
+    const endTime = fixedNow - 1 * 86400
     validatedPolicy = {
       policyId,
       owner: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+      optionId: 1,
+      duration: endTime - startTime,
       latitude: config.overrides?.latitude ?? 12.9716,
       longitude: config.overrides?.longitude ?? 77.5946,
       latitudeE6: Math.round((config.overrides?.latitude ?? 12.9716) * 1_000_000),
       longitudeE6: Math.round((config.overrides?.longitude ?? 77.5946) * 1_000_000),
-      startTime: fixedNow - 8 * 86400,
-      endTime: fixedNow - 1 * 86400,
+      startTime,
+      endTime,
       startDate: config.overrides?.startDate ?? '2024-10-01',
       endDate: config.overrides?.endDate ?? '2024-10-07',
       thresholdMm: 50,
@@ -131,7 +139,7 @@ export const onHttpTrigger = async (
   }
 
   runtime.log(
-    `[Step 2] Policy #${policyId} validated: Location (${validatedPolicy.latitude.toFixed(4)}, ${validatedPolicy.longitude.toFixed(4)}), Window: ${validatedPolicy.startDate} to ${validatedPolicy.endDate}, Threshold: ${validatedPolicy.thresholdMm} mm`
+    `[Step 2] Policy #${policyId} validated: Option #${validatedPolicy.optionId}, Location (${validatedPolicy.latitude.toFixed(4)}, ${validatedPolicy.longitude.toFixed(4)}), Window: ${validatedPolicy.startDate} to ${validatedPolicy.endDate}, Duration: ${validatedPolicy.duration}s, Threshold: ${validatedPolicy.thresholdMm} mm`
   )
 
   // ─── Step 3: Check Report Status (Prevent Duplicate Processing) ─
@@ -142,7 +150,13 @@ export const onHttpTrigger = async (
     return `Policy #${policyId} already processed.`
   }
 
-  // ─── Step 4: Extract Location & Observation Dates ─────────
+  // ─── Step 4: Determine Granularity & Window ────────────────
+  const useHourly = isHourlyGranularityRequired(
+    validatedPolicy.startTime,
+    validatedPolicy.endTime,
+    validatedPolicy.optionId,
+  )
+
   const weatherParams: WeatherParams = {
     latitude: validatedPolicy.latitude,
     longitude: validatedPolicy.longitude,
@@ -150,26 +164,63 @@ export const onHttpTrigger = async (
     endDate: validatedPolicy.endDate,
   }
 
-  runtime.log(
-    `[Step 4] Coordinates: (${weatherParams.latitude}, ${weatherParams.longitude}) | Observation Period: ${weatherParams.startDate} -> ${weatherParams.endDate}`
-  )
+  let calcResult: RainfallCalculationResult
 
-  // ─── Step 5 & 6: Fetch & Validate Weather from Open-Meteo ──
-  runtime.log('[Step 5] Fetching historical rainfall via CRE HTTP capability (DON consensus)...')
+  if (useHourly) {
+    runtime.log(
+      `[Step 4] Granularity: HOURLY (Window does not align to full UTC calendar days or is sub-daily demo option).`
+    )
+    runtime.log(
+      `[Step 4] Coordinates: (${weatherParams.latitude}, ${weatherParams.longitude}) | Hourly Window: [${validatedPolicy.startTime}, ${validatedPolicy.endTime}) (${(validatedPolicy.endTime - validatedPolicy.startTime) / 3600} hours)`
+    )
 
-  let dailyRecords: DailyRainfallRecord[]
-  try {
-    dailyRecords = fetchValidatedWeather(runtime, weatherParams)
-  } catch (err: any) {
-    runtime.log(`[Step 5/6 Error] Weather verification failed: ${err.message}. Aborting workflow.`)
-    throw err
+    // ─── Step 5 & 6: Fetch & Validate Hourly Weather from Open-Meteo ──
+    runtime.log('[Step 5] Fetching historical hourly rainfall via CRE HTTP capability (DON consensus)...')
+
+    const hourlyParams: HourlyWeatherParams = {
+      ...weatherParams,
+      startTime: validatedPolicy.startTime,
+      endTime: validatedPolicy.endTime,
+    }
+
+    let hourlyRecords: HourlyRainfallRecord[]
+    try {
+      hourlyRecords = fetchValidatedHourlyWeather(runtime, hourlyParams)
+    } catch (err: any) {
+      runtime.log(`[Step 5/6 Error] Hourly weather verification failed: ${err.message}. Aborting workflow.`)
+      throw err
+    }
+
+    runtime.log(`[Step 6] Hourly weather data validated. Received ${hourlyRecords.length} consecutive hourly observations.`)
+
+    // ─── Step 7: Calculate Total Rainfall & Apply Rounding Rule
+    runtime.log('[Step 7] Calculating cumulative rainfall total from hourly observations...')
+    calcResult = calculateCumulativeRainfall(hourlyRecords)
+  } else {
+    runtime.log(
+      `[Step 4] Granularity: DAILY (Observation period aligns to full UTC calendar days).`
+    )
+    runtime.log(
+      `[Step 4] Coordinates: (${weatherParams.latitude}, ${weatherParams.longitude}) | Observation Period: ${weatherParams.startDate} -> ${weatherParams.endDate}`
+    )
+
+    // ─── Step 5 & 6: Fetch & Validate Daily Weather from Open-Meteo ──
+    runtime.log('[Step 5] Fetching historical daily rainfall via CRE HTTP capability (DON consensus)...')
+
+    let dailyRecords: DailyRainfallRecord[]
+    try {
+      dailyRecords = fetchValidatedWeather(runtime, weatherParams)
+    } catch (err: any) {
+      runtime.log(`[Step 5/6 Error] Daily weather verification failed: ${err.message}. Aborting workflow.`)
+      throw err
+    }
+
+    runtime.log(`[Step 6] Daily weather data validated. Received ${dailyRecords.length} consecutive daily records.`)
+
+    // ─── Step 7: Calculate Total Rainfall & Apply Rounding Rule
+    runtime.log('[Step 7] Calculating cumulative rainfall total from daily observations...')
+    calcResult = calculateCumulativeRainfall(dailyRecords)
   }
-
-  runtime.log(`[Step 6] Weather data validated. Received ${dailyRecords.length} consecutive daily records.`)
-
-  // ─── Step 7: Calculate Total Rainfall & Apply Rounding Rule
-  runtime.log('[Step 7] Calculating cumulative rainfall total...')
-  const calcResult: RainfallCalculationResult = calculateCumulativeRainfall(dailyRecords)
 
   runtime.log(
     `[Step 7] Total raw rainfall: ${calcResult.rawTotalMm.toFixed(2)} mm -> Rounded integer: ${calcResult.roundedTotalMm} mm (${calcResult.roundingRule})`

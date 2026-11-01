@@ -1,16 +1,19 @@
 import { describe, expect, test } from 'bun:test'
 import {
   type Config,
-  configSchema,
-  toWorkflowConfig,
 } from './config'
 import {
+  isHourlyGranularityRequired,
   validateAndTransformPolicy,
   type RawPolicyData,
 } from './policy'
 import {
+  buildOpenMeteoHourlyUrl,
+  buildOpenMeteoUrl,
   getExpectedDates,
+  parseAndValidateHourlyWeatherResponse,
   parseAndValidateWeatherResponse,
+  parseIsoToUtcSeconds,
 } from './weather'
 import {
   calculateCumulativeRainfall,
@@ -43,13 +46,14 @@ describe('End-to-End CRE Workflow Orchestration Tests', () => {
     expect(handlers[0].fn).toBe(onHttpTrigger)
   })
 
-  test('Step 1 & 2: Policy Reading & Validation', () => {
+  test('Step 1 & 2: Policy Reading & Validation with optionId and duration', () => {
     const rawPolicy: RawPolicyData = {
       owner: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+      optionId: 6n,
       latitudeE6: 12971000,
       longitudeE6: 77594000,
-      startTime: 1790812800n,
-      endTime: 1791417600n,
+      startTime: 1790812800n, // 2026-10-01 00:00:00 UTC
+      endTime: 1791417600n,   // 2026-10-08 00:00:00 UTC (7 days)
       thresholdMm: 50n,
       payoutAmount: 100_000_000_000_000_000_000n,
       reported: false,
@@ -59,6 +63,8 @@ describe('End-to-End CRE Workflow Orchestration Tests', () => {
 
     const validated = validateAndTransformPolicy(7, rawPolicy)
     expect(validated.policyId).toBe(7)
+    expect(validated.optionId).toBe(6)
+    expect(validated.duration).toBe(604800) // 7 days in seconds
     expect(validated.latitude).toBe(12.971)
     expect(validated.longitude).toBe(77.594)
     expect(validated.startDate).toBe('2026-10-01')
@@ -70,6 +76,7 @@ describe('End-to-End CRE Workflow Orchestration Tests', () => {
   test('Step 3: Policy reported check stops re-processing', () => {
     const rawReportedPolicy: RawPolicyData = {
       owner: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+      optionId: 1n,
       latitudeE6: 12971000,
       longitudeE6: 77594000,
       startTime: 1790812800n,
@@ -86,7 +93,30 @@ describe('End-to-End CRE Workflow Orchestration Tests', () => {
     )
   })
 
-  test('Step 4, 5 & 6: Weather Data Validation & Date Coverage', () => {
+  test('Granularity Selection: isHourlyGranularityRequired verifies boundary alignment and duration', () => {
+    // Option 0 (Demo 2-hour policy): always requires hourly
+    expect(isHourlyGranularityRequired(1790863200, 1790870400, 0)).toBe(true)
+
+    // Sub-daily duration (< 86400s): requires hourly
+    expect(isHourlyGranularityRequired(1790863200, 1790863200 + 3600, 1)).toBe(true)
+
+    // Multi-day policy aligned to UTC midnight: uses daily (returns false for hourly required)
+    const midnightStart = 1790812800 // 2026-10-01 00:00:00 UTC (multiple of 86400)
+    const midnightEnd = midnightStart + 30 * 86400
+    expect(midnightStart % 86400).toBe(0)
+    expect(midnightEnd % 86400).toBe(0)
+    expect(isHourlyGranularityRequired(midnightStart, midnightEnd, 1)).toBe(false)
+
+    // Multi-day policy starting at 14:00 UTC (not midnight): requires hourly
+    const nonMidnightStart = midnightStart + 14 * 3600
+    const nonMidnightEnd = nonMidnightStart + 30 * 86400
+    expect(isHourlyGranularityRequired(nonMidnightStart, nonMidnightEnd, 1)).toBe(true)
+
+    // Multi-day policy ending at non-midnight: requires hourly
+    expect(isHourlyGranularityRequired(midnightStart, midnightStart + 86400 + 3600, 1)).toBe(true)
+  })
+
+  test('Step 4, 5 & 6: Daily Weather Data Validation & Date Coverage', () => {
     const expectedDates = getExpectedDates('2026-10-01', '2026-10-07')
     expect(expectedDates).toHaveLength(7)
 
@@ -101,6 +131,91 @@ describe('End-to-End CRE Workflow Orchestration Tests', () => {
     expect(validatedRecords).toHaveLength(7)
     expect(validatedRecords[0].precipitationMm).toBe(2.4)
     expect(validatedRecords[6].precipitationMm).toBe(6.0)
+  })
+
+  test('Hourly Weather Validation: Option 0 (2-hour demo) slices exact window [startTime, endTime)', () => {
+    // 2026-10-01 14:00:00 UTC to 16:00:00 UTC (Option 0 Demo)
+    const startTime = parseIsoToUtcSeconds('2026-10-01T14:00')
+    const endTime = parseIsoToUtcSeconds('2026-10-01T16:00')
+    expect(endTime - startTime).toBe(7200) // 2 hours
+
+    // URL construction
+    const hourlyUrl = buildOpenMeteoHourlyUrl({
+      latitude: 12.971,
+      longitude: 77.594,
+      startDate: '2026-10-01',
+      endDate: '2026-10-01',
+    })
+    expect(hourlyUrl).toContain('hourly=precipitation')
+    expect(hourlyUrl).toContain('timezone=UTC')
+
+    // Mock 24-hour response for the day
+    const times: string[] = []
+    const precipitation: number[] = []
+    for (let h = 0; h < 24; h++) {
+      const hh = String(h).padStart(2, '0')
+      times.push(`2026-10-01T${hh}:00`)
+      // rainfall at hour 14 is 1.5mm, hour 15 is 2.5mm, other hours 0
+      precipitation.push(h === 14 ? 1.5 : h === 15 ? 2.5 : 0.0)
+    }
+
+    const mockResponse = JSON.stringify({
+      hourly: {
+        time: times,
+        precipitation,
+      },
+    })
+
+    const validatedHourly = parseAndValidateHourlyWeatherResponse(mockResponse, startTime, endTime)
+    expect(validatedHourly).toHaveLength(2)
+    expect(validatedHourly[0].timeIso).toBe('2026-10-01T14:00')
+    expect(validatedHourly[0].precipitationMm).toBe(1.5)
+    expect(validatedHourly[1].timeIso).toBe('2026-10-01T15:00')
+    expect(validatedHourly[1].precipitationMm).toBe(2.5)
+
+    // Calculate rainfall on hourly records: 1.5 + 2.5 = 4.0 mm -> 4 mm
+    const calcResult = calculateCumulativeRainfall(validatedHourly)
+    expect(calcResult.rawTotalMm).toBe(4.0)
+    expect(calcResult.roundedTotalMm).toBe(4)
+    expect(calcResult.rainfallMmUint256).toBe(4n)
+  })
+
+  test('Hourly Weather Validation: Rejects missing data, null, or gap in hourly sequence', () => {
+    const startTime = parseIsoToUtcSeconds('2026-10-01T14:00')
+    const endTime = parseIsoToUtcSeconds('2026-10-01T16:00')
+
+    // Null rainfall value at hour 15
+    const nullResponse = JSON.stringify({
+      hourly: {
+        time: ['2026-10-01T14:00', '2026-10-01T15:00'],
+        precipitation: [1.5, null],
+      },
+    })
+    expect(() => parseAndValidateHourlyWeatherResponse(nullResponse, startTime, endTime)).toThrow(
+      'Missing or non-finite rainfall value'
+    )
+
+    // Missing hour in observation window
+    const missingHourResponse = JSON.stringify({
+      hourly: {
+        time: ['2026-10-01T14:00'], // only 1 hour returned instead of 2
+        precipitation: [1.5],
+      },
+    })
+    expect(() => parseAndValidateHourlyWeatherResponse(missingHourResponse, startTime, endTime)).toThrow(
+      'Hourly observation count mismatch'
+    )
+
+    // Negative rainfall
+    const negativeResponse = JSON.stringify({
+      hourly: {
+        time: ['2026-10-01T14:00', '2026-10-01T15:00'],
+        precipitation: [1.5, -0.5],
+      },
+    })
+    expect(() => parseAndValidateHourlyWeatherResponse(negativeResponse, startTime, endTime)).toThrow(
+      'Invalid negative rainfall value'
+    )
   })
 
   test('Step 7: Rainfall Calculation & Agreed Rounding Rule', () => {
@@ -138,4 +253,3 @@ describe('End-to-End CRE Workflow Orchestration Tests', () => {
     expect(decoded.rainfallMm).toBe(32n)
   })
 })
-

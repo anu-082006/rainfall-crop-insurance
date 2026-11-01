@@ -31,6 +31,7 @@ export const CROP_INSURANCE_ABI = [
         internalType: 'struct ICropInsurance.Policy',
         components: [
           { name: 'owner', type: 'address', internalType: 'address' },
+          { name: 'optionId', type: 'uint256', internalType: 'uint256' },
           { name: 'latitudeE6', type: 'int32', internalType: 'int32' },
           { name: 'longitudeE6', type: 'int32', internalType: 'int32' },
           { name: 'startTime', type: 'uint64', internalType: 'uint64' },
@@ -54,6 +55,7 @@ export const CROP_INSURANCE_ABI = [
  */
 export interface RawPolicyData {
   owner: `0x${string}`
+  optionId: bigint
   latitudeE6: number
   longitudeE6: number
   startTime: bigint
@@ -71,6 +73,8 @@ export interface RawPolicyData {
 export interface ValidatedPolicy {
   policyId: number
   owner: `0x${string}`
+  optionId: number
+  duration: number
   /** Converted decimal latitude (-90 to +90) */
   latitude: number
   /** Converted decimal longitude (-180 to +180) */
@@ -98,6 +102,39 @@ export interface ValidatedPolicy {
   claimed: boolean
   /** Whether current time is past the observation window */
   observationEnded: boolean
+}
+
+// ─── Observation Granularity Decision ───────────────────────
+
+/**
+ * Determines whether rainfall observations must be retrieved and aggregated
+ * at hourly granularity or can use daily calendar-day granularity.
+ *
+ * Rules:
+ * 1. Hourly observation is required if:
+ *    - Option 0 (2-hour Demo policy)
+ *    - Observation duration is sub-daily (< 86,400 seconds)
+ *    - Start time is not aligned to UTC midnight (startTime % 86,400 !== 0)
+ *    - End time is not aligned to UTC midnight (endTime % 86,400 !== 0)
+ *    - Duration is not a multiple of whole days (duration % 86,400 !== 0)
+ *
+ * 2. Daily observation (daily=precipitation_sum) is used ONLY if:
+ *    - Spans full UTC calendar days (duration >= 86,400 && duration % 86,400 === 0)
+ *    - startTime and endTime both align to UTC midnight (00:00:00 UTC)
+ *    - Option is not the Demo option (optionId !== 0)
+ */
+export function isHourlyGranularityRequired(
+  startTime: number,
+  endTime: number,
+  optionId?: number,
+): boolean {
+  if (optionId === 0) return true
+  const duration = endTime - startTime
+  if (duration < 86400) return true
+  if (startTime % 86400 !== 0) return true
+  if (endTime % 86400 !== 0) return true
+  if (duration % 86400 !== 0) return true
+  return false
 }
 
 // ─── Coordinate Conversion Utilities ────────────────────────
@@ -144,7 +181,13 @@ export function validateAndTransformPolicy(
     )
   }
 
-  // 3. Convert coordinates: latitude = latitudeE6 / 1_000_000
+  // 3. Validate optionId
+  const optionId = Number(raw.optionId)
+  if (isNaN(optionId) || optionId < 0) {
+    throw new Error(`Policy #${policyId} contains invalid optionId: ${raw.optionId}`)
+  }
+
+  // 4. Convert coordinates: latitude = latitudeE6 / 1_000_000
   const latitude = e6ToDecimal(raw.latitudeE6)
   const longitude = e6ToDecimal(raw.longitudeE6)
 
@@ -155,7 +198,7 @@ export function validateAndTransformPolicy(
     throw new Error(`Policy #${policyId} contains invalid longitude: ${longitude} (raw: ${raw.longitudeE6})`)
   }
 
-  // 4. Validate time periods
+  // 5. Validate time periods
   const startTime = Number(raw.startTime)
   const endTime = Number(raw.endTime)
 
@@ -164,6 +207,8 @@ export function validateAndTransformPolicy(
       `Policy #${policyId} contains invalid observation window: startTime (${startTime}) >= endTime (${endTime})`
     )
   }
+
+  const duration = endTime - startTime
 
   // Convert Unix seconds to ISO calendar dates (YYYY-MM-DD, UTC)
   const startDate = new Date(startTime * 1000).toISOString().split('T')[0]
@@ -175,6 +220,8 @@ export function validateAndTransformPolicy(
   return {
     policyId,
     owner: raw.owner,
+    optionId,
+    duration,
     latitude,
     longitude,
     latitudeE6: raw.latitudeE6,
