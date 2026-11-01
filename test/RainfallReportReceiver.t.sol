@@ -8,6 +8,8 @@ import {RainfallReportReceiver} from "../contracts/RainfallReportReceiver.sol";
 import {TestToken} from "../contracts/TestToken.sol";
 import {IReceiver} from "../contracts/cre/IReceiver.sol";
 import {ReceiverTemplate} from "../contracts/cre/ReceiverTemplate.sol";
+import {ICropInsurance} from "../contracts/interfaces/ICropInsurance.sol";
+import {PolicyCatalogue} from "../script/PolicyCatalogue.sol";
 
 contract RainfallReportReceiverTest is Test {
     CropInsurance insurance;
@@ -17,21 +19,22 @@ contract RainfallReportReceiverTest is Test {
     address attacker = makeAddr("attacker");
     address farmer = makeAddr("farmer");
 
-    uint64 constant START = 1_000_000;
-    uint64 constant END = START + 7 days;
+    uint64 constant START = 1_796_428_800; // 05 Dec 2026 00:00 UTC
+    uint64 constant END = START + 60 days; // option 6 duration
     bytes32 constant WORKFLOW_ID = keccak256("rainfall-workflow");
     address workflowOwner = makeAddr("workflowOwner");
 
     uint256 policyId;
 
     function setUp() public {
+        vm.warp(START - 30 days);
         TestToken token = new TestToken();
-        insurance = new CropInsurance(address(token));
+        insurance = new CropInsurance(address(token), PolicyCatalogue.options());
         receiver = new RainfallReportReceiver(forwarder, address(insurance));
         insurance.setReportReceiver(address(receiver));
 
         vm.prank(farmer);
-        policyId = insurance.createPolicy(12_971_599, 77_594_566, START, END, 50, 100e18);
+        policyId = insurance.enroll(6, 13_136_700, 78_129_200, START);
         vm.warp(END + 1 days);
     }
 
