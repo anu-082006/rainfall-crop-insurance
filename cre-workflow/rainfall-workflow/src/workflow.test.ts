@@ -133,6 +133,98 @@ describe('End-to-End CRE Workflow Orchestration Tests', () => {
     expect(validatedRecords[6].precipitationMm).toBe(6.0)
   })
 
+  test('Daily Weather Validation: Rejects missing, null, negative, or gap dates', () => {
+    const expectedDates = getExpectedDates('2026-10-01', '2026-10-03')
+
+    // Null rainfall value on day 2
+    const nullDailyResponse = JSON.stringify({
+      daily: {
+        time: expectedDates,
+        precipitation_sum: [2.4, null, 1.0],
+      },
+    })
+    expect(() => parseAndValidateWeatherResponse(nullDailyResponse, expectedDates)).toThrow(
+      'Missing or non-finite rainfall value'
+    )
+
+    // Negative rainfall value
+    const negativeDailyResponse = JSON.stringify({
+      daily: {
+        time: expectedDates,
+        precipitation_sum: [2.4, -0.5, 1.0],
+      },
+    })
+    expect(() => parseAndValidateWeatherResponse(negativeDailyResponse, expectedDates)).toThrow(
+      'Invalid negative rainfall value'
+    )
+
+    // Date count mismatch (2 days returned instead of 3)
+    const countMismatchResponse = JSON.stringify({
+      daily: {
+        time: ['2026-10-01', '2026-10-02'],
+        precipitation_sum: [2.4, 1.0],
+      },
+    })
+    expect(() => parseAndValidateWeatherResponse(countMismatchResponse, expectedDates)).toThrow(
+      'Date count mismatch'
+    )
+
+    // Date sequence mismatch
+    const sequenceMismatchResponse = JSON.stringify({
+      daily: {
+        time: ['2026-10-01', '2026-10-04', '2026-10-03'],
+        precipitation_sum: [2.4, 1.0, 0.0],
+      },
+    })
+    expect(() => parseAndValidateWeatherResponse(sequenceMismatchResponse, expectedDates)).toThrow(
+      'Date sequence mismatch'
+    )
+  })
+
+  test('Threshold Evaluation Fixtures: Strictly below (<) vs Equal (==) vs Above (>) trigger', () => {
+    const thresholdMm = 50
+
+    // Case 1: Strictly below trigger (49.4 mm -> 49 mm < 50 mm -> Eligible)
+    const belowFixture = [
+      { date: '2026-10-01', precipitationMm: 24.2 },
+      { date: '2026-10-02', precipitationMm: 25.2 },
+    ]
+    const belowResult = calculateCumulativeRainfall(belowFixture)
+    expect(belowResult.rawTotalMm).toBe(49.4)
+    expect(belowResult.roundedTotalMm).toBe(49)
+    expect(belowResult.roundedTotalMm < thresholdMm).toBe(true)
+
+    // Case 2: Rounding boundary strictly below trigger (49.49 mm -> 49 mm < 50 mm -> Eligible)
+    const boundaryBelowFixture = [
+      { date: '2026-10-01', precipitationMm: 24.49 },
+      { date: '2026-10-02', precipitationMm: 25.00 },
+    ]
+    const boundaryBelowResult = calculateCumulativeRainfall(boundaryBelowFixture)
+    expect(boundaryBelowResult.rawTotalMm).toBe(49.49)
+    expect(boundaryBelowResult.roundedTotalMm).toBe(49)
+    expect(boundaryBelowResult.roundedTotalMm < thresholdMm).toBe(true)
+
+    // Case 3: Exactly equal to trigger (49.50 mm -> rounds to 50 mm == 50 mm -> Ineligible)
+    const boundaryEqualFixture = [
+      { date: '2026-10-01', precipitationMm: 24.50 },
+      { date: '2026-10-02', precipitationMm: 25.00 },
+    ]
+    const boundaryEqualResult = calculateCumulativeRainfall(boundaryEqualFixture)
+    expect(boundaryEqualResult.rawTotalMm).toBe(49.50)
+    expect(boundaryEqualResult.roundedTotalMm).toBe(50)
+    expect(boundaryEqualResult.roundedTotalMm < thresholdMm).toBe(false)
+
+    // Case 4: Strictly above trigger (50.1 mm -> rounds to 50 mm == 50 mm; 50.6 mm -> 51 mm > 50 mm -> Ineligible)
+    const aboveFixture = [
+      { date: '2026-10-01', precipitationMm: 30.0 },
+      { date: '2026-10-02', precipitationMm: 25.6 },
+    ]
+    const aboveResult = calculateCumulativeRainfall(aboveFixture)
+    expect(aboveResult.rawTotalMm).toBe(55.6)
+    expect(aboveResult.roundedTotalMm).toBe(56)
+    expect(aboveResult.roundedTotalMm < thresholdMm).toBe(false)
+  })
+
   test('Hourly Weather Validation: Option 0 (2-hour demo) slices exact window [startTime, endTime)', () => {
     // 2026-10-01 14:00:00 UTC to 16:00:00 UTC (Option 0 Demo)
     const startTime = parseIsoToUtcSeconds('2026-10-01T14:00')
