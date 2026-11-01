@@ -1,0 +1,25 @@
+location_id,district,latitude,longitude,region,elevation_m
+KA_MANGALURU,Dakshina Kannada,12.9141,74.8560,coastal,22
+KA_UDUPI,Udupi,13.3409,74.7421,coastal,27
+KA_KARWAR,Uttara Kannada,14.8138,74.1298,coastal,12
+KA_SHIVAMOGGA,Shivamogga,13.9299,75.5681,malnad,569
+KA_CHIKKAMAGALURU,Chikkamagaluru,13.3161,75.7720,malnad,1090
+KA_MADIKERI,Kodagu,12.4244,75.7382,malnad,1150
+KA_HASSAN,Hassan,13.0072,76.1030,malnad,957
+KA_BELAGAVI,Belagavi,15.8497,74.4977,northern_interior,762
+KA_DHARWAD,Dharwad,15.4589,75.0078,northern_interior,750
+KA_VIJAYAPURA,Vijayapura,16.8302,75.7100,northern_interior,606
+KA_BAGALKOTE,Bagalkote,16.1691,75.6615,northern_interior,533
+KA_GADAG,Gadag,15.4312,75.6358,northern_interior,655
+KA_HAVERI,Haveri,14.7954,75.3991,northern_interior,572
+KA_KALABURAGI,Kalaburagi,17.3297,76.8343,northern_interior,454
+KA_BIDAR,Bidar,17.9104,77.5199,northern_interior,615
+KA_RAICHUR,Raichur,16.2076,77.3463,northern_interior,407
+KA_KOPPAL,Koppal,15.3478,76.1554,northern_interior,530
+KA_YADGIR,Yadgir,16.7702,77.1376,northern_interior,389
+KA_DAVANAGERE,Davanagere,14.4644,75.9218,central,602
+KA_CHITRADURGA,Chitradurga,14.2251,76.3980,central,732
+KA_BALLARI,Ballari,15.1394,76.9214,central,449
+KA_VIJAYANAGARA,Vijayanagara,15.2689,76.3909,central,480
+KA_TUMAKURU,Tumakuru,13.3379,77.1010,southern_interior,822
+KA_MANDYA,Mandya,12.5244,76.8958,southern_interior,678
