@@ -5,8 +5,9 @@ import {Script, console} from "forge-std/Script.sol";
 import {CropInsurance} from "../contracts/CropInsurance.sol";
 import {RainfallReportReceiver} from "../contracts/RainfallReportReceiver.sol";
 import {TestToken} from "../contracts/TestToken.sol";
+import {PolicyCatalogue} from "./PolicyCatalogue.sol";
 
-/// @notice Deploys TestToken, CropInsurance and RainfallReportReceiver, links them,
+/// @notice Deploys TestToken, CropInsurance (with the fixed 13-option catalogue) and RainfallReportReceiver, links them,
 ///         funds the insurance contract and writes addresses to deployments/<chainId>.json.
 contract Deploy is Script {
     uint256 constant INITIAL_FUNDING = 1_000_000e18;
@@ -17,7 +18,7 @@ contract Deploy is Script {
 
         vm.startBroadcast(deployerKey);
         TestToken token = new TestToken();
-        CropInsurance insurance = new CropInsurance(address(token));
+        CropInsurance insurance = new CropInsurance(address(token), PolicyCatalogue.options());
         RainfallReportReceiver receiver = new RainfallReportReceiver(forwarder, address(insurance));
         insurance.setReportReceiver(address(receiver));
         token.mint(address(insurance), INITIAL_FUNDING);
@@ -34,6 +35,7 @@ contract Deploy is Script {
 
         console.log("TestToken:             ", address(token));
         console.log("CropInsurance:         ", address(insurance));
+        console.log("Catalogue options:     ", insurance.optionCount());
         console.log("RainfallReportReceiver:", address(receiver));
         console.log("Forwarder:             ", forwarder);
     }
