@@ -8,9 +8,9 @@ import {ICropInsurance} from "./interfaces/ICropInsurance.sol";
 
 /// @title CropInsurance
 /// @notice Rainfall-based parametric crop insurance prototype. Test tokens only; not a real insurance product.
-/// @dev Claim eligibility depends only on the accepted rainfall report, the policy threshold,
-///      the observation window and the claimed flag. No other input (including AI predictions)
-///      can change policy terms or trigger a payout.
+/// @dev Farmers enrol in options from a fixed catalogue set at deployment. Claim eligibility depends only on
+///      the accepted rainfall report, the policy trigger, the coverage window and the claimed flag.
+///      No other input (including AI recommendations) can change policy terms or trigger a payout.
 contract CropInsurance is ICropInsurance, Ownable {
     using SafeERC20 for IERC20;
 
@@ -18,15 +18,18 @@ contract CropInsurance is ICropInsurance, Ownable {
     address public reportReceiver;
     uint256 public nextPolicyId = 1;
 
+    PolicyOption[] private options;
     mapping(uint256 => Policy) private policies;
 
     event ReportReceiverUpdated(address indexed previousReceiver, address indexed newReceiver);
 
     error ZeroAddress();
-    error InvalidThreshold();
-    error InvalidPayout();
-    error InvalidPeriod();
+    error EmptyCatalogue();
+    error InvalidOptionTerms(uint256 optionId);
+    error InvalidOption(uint256 optionId);
     error InvalidLocation();
+    error StartNotInFuture();
+    error StartNotOnFullHour();
     error PolicyNotFound(uint256 policyId);
     error NotReportReceiver();
     error PeriodMismatch();
@@ -43,9 +46,24 @@ contract CropInsurance is ICropInsurance, Ownable {
         _;
     }
 
-    constructor(address token) Ownable(msg.sender) {
+    /// @param token The ERC-20 used for payouts.
+    /// @param catalogue The fixed policy options. They cannot be changed after deployment.
+    constructor(address token, PolicyOption[] memory catalogue) Ownable(msg.sender) {
         if (token == address(0)) revert ZeroAddress();
+        if (catalogue.length == 0) revert EmptyCatalogue();
         payoutToken = IERC20(token);
+
+        for (uint256 i = 0; i < catalogue.length; i++) {
+            PolicyOption memory option = catalogue[i];
+            // Duration must be whole hours so the end time also falls on a full hour.
+            if (
+                option.thresholdMm == 0 || option.payoutAmount == 0 || option.duration == 0
+                    || option.duration % 1 hours != 0
+            ) {
+                revert InvalidOptionTerms(i);
+            }
+            options.push(option);
+        }
     }
 
     /// @notice Sets the CRE report receiver contract allowed to record rainfall.
@@ -56,39 +74,38 @@ contract CropInsurance is ICropInsurance, Ownable {
     }
 
     /// @inheritdoc ICropInsurance
-    function createPolicy(
-        int32 latitudeE6,
-        int32 longitudeE6,
-        uint64 startTime,
-        uint64 endTime,
-        uint256 thresholdMm,
-        uint256 payoutAmount
-    ) external returns (uint256 policyId) {
-        if (thresholdMm == 0) revert InvalidThreshold();
-        if (payoutAmount == 0) revert InvalidPayout();
-        if (startTime >= endTime) revert InvalidPeriod();
+    function enroll(uint256 optionId, int32 latitudeE6, int32 longitudeE6, uint64 startTime)
+        external
+        returns (uint256 policyId)
+    {
+        if (optionId >= options.length) revert InvalidOption(optionId);
         if (latitudeE6 < -90_000_000 || latitudeE6 > 90_000_000) revert InvalidLocation();
         if (longitudeE6 < -180_000_000 || longitudeE6 > 180_000_000) revert InvalidLocation();
+        if (startTime <= block.timestamp) revert StartNotInFuture();
+        if (startTime % 1 hours != 0) revert StartNotOnFullHour();
+
+        PolicyOption memory option = options[optionId];
 
         policyId = nextPolicyId++;
         policies[policyId] = Policy({
             owner: msg.sender,
+            optionId: optionId,
             latitudeE6: latitudeE6,
             longitudeE6: longitudeE6,
             startTime: startTime,
-            endTime: endTime,
-            thresholdMm: thresholdMm,
-            payoutAmount: payoutAmount,
+            endTime: startTime + option.duration,
+            thresholdMm: option.thresholdMm,
+            payoutAmount: option.payoutAmount,
             reported: false,
             rainfallMm: 0,
             claimed: false
         });
 
-        emit PolicyCreated(policyId, msg.sender);
+        emit PolicyCreated(policyId, msg.sender, optionId);
     }
 
     /// @inheritdoc ICropInsurance
-    /// @dev One final report per policy. The observation window must match and must have ended.
+    /// @dev One final report per policy. The coverage window must match and must have ended.
     function recordRainfall(uint256 policyId, uint64 startTime, uint64 endTime, uint256 rainfallMm)
         external
         onlyReportReceiver
@@ -127,12 +144,23 @@ contract CropInsurance is ICropInsurance, Ownable {
     }
 
     /// @inheritdoc ICropInsurance
+    function optionCount() external view returns (uint256) {
+        return options.length;
+    }
+
+    /// @inheritdoc ICropInsurance
+    function getOption(uint256 optionId) external view returns (PolicyOption memory) {
+        if (optionId >= options.length) revert InvalidOption(optionId);
+        return options[optionId];
+    }
+
+    /// @inheritdoc ICropInsurance
     function getPolicy(uint256 policyId) external view returns (Policy memory) {
         return _getExisting(policyId);
     }
 
     /// @inheritdoc ICropInsurance
-    /// @dev Eligible only if a report was accepted, rainfall is strictly below the threshold and not yet claimed.
+    /// @dev Eligible only if a report was accepted, rainfall is strictly below the trigger and not yet claimed.
     function isEligible(uint256 policyId) external view returns (bool) {
         Policy storage policy = _getExisting(policyId);
         return policy.reported && !policy.claimed && policy.rainfallMm < policy.thresholdMm;

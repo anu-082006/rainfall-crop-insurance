@@ -5,3 +5,6 @@ broadcast/*/31337/
 
 # Secrets
 .env
+
+# macOS
+.DS_Store
