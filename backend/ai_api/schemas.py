@@ -39,6 +39,10 @@ class RecommendRequest(BaseModel):
     sowing_date: str = Field(..., description="Crop sowing date in YYYY-MM-DD format")
     as_of_date: Optional[str] = Field(None, description="Observation cutoff date (YYYY-MM-DD)")
     options: List[OptionInput] = Field(..., min_length=1, description="List of catalogue candidate options")
+    rainfall_prev_30d: Optional[float] = Field(None, ge=0.0, description="Antecedent 30-day rainfall in mm")
+    rainfall_prev_90d: Optional[float] = Field(None, ge=0.0, description="Antecedent 90-day rainfall in mm")
+    rainfall_prev_365d: Optional[float] = Field(None, ge=0.0, description="Antecedent 365-day rainfall in mm")
+    mode: Optional[str] = Field(None, description="Inference mode: 'standard' or 'climatology_only'")
 
     @field_validator("crop")
     @classmethod

@@ -45,7 +45,7 @@ sequenceDiagram
     UI->>Storage: Retrieve connected wallet's saved profile
     UI->>UI: Read 13 catalogue options from Contract / Mock
     UI->>AI: POST /recommend (Profile + Catalogue Options)
-    AI->>Weather: Query daily precipitation (2000-2023)
+    AI->>Weather: Query daily precipitation (historical / recent observations)
     Weather-->>AI: Historical rainfall array
     AI->>AI: Align crop growth stage & calculate deficit probabilities
     AI->>AI: Exclude Option 0 (Demo window too short)

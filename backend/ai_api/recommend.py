@@ -68,15 +68,36 @@ def _generate_groundnut_ml_recommendation(
 
         # Evaluate risk using Person 2's Random Forest model
         try:
+            # Determine inference mode and antecedent rainfall parameters
+            has_antecedent = (
+                request.rainfall_prev_30d is not None
+                and request.rainfall_prev_90d is not None
+                and request.rainfall_prev_365d is not None
+            )
+
+            if request.mode:
+                inf_mode = request.mode
+            elif has_antecedent:
+                inf_mode = "standard"
+            else:
+                inf_mode = "climatology_only"
+
             # Policy catalogue options 1-12 correspond to agricultural catalogue
-            pred_query = {
+            pred_query: Dict[str, Any] = {
                 "latitude": request.latitude,
                 "longitude": request.longitude,
                 "start_date": request.sowing_date,
                 "option_id": opt.option_id if 1 <= opt.option_id <= 12 else 1,
             }
+            if request.rainfall_prev_30d is not None:
+                pred_query["rainfall_prev_30d"] = request.rainfall_prev_30d
+            if request.rainfall_prev_90d is not None:
+                pred_query["rainfall_prev_90d"] = request.rainfall_prev_90d
+            if request.rainfall_prev_365d is not None:
+                pred_query["rainfall_prev_365d"] = request.rainfall_prev_365d
+
             pred_res = predictor.predict_shortfall_probability(
-                query=pred_query, mode="climatology_only"
+                query=pred_query, mode=inf_mode
             )
             prob = float(pred_res["shortfall_probability"])
             risk_cat = pred_res.get("risk_category", "Moderate Shortfall Risk")
