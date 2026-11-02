@@ -46,3 +46,15 @@ Thumbs.db
 .idea/
 *.swp
 *.log
+
+
+# CRE Build & WASM Artifacts
+.cre_build_tmp*
+*.wasm
+*.tmp.js
+
+# Large Datasets & Cache (keep reference and fixtures)
+data/raw/
+data/processed/
+!data/reference/
+!data/reference/**

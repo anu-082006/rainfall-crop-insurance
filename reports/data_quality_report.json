@@ -1,0 +1,188 @@
+{
+  "is_valid": true,
+  "total_records": 657456,
+  "number_of_locations": 24,
+  "duplicate_count": 0,
+  "missing_precip_count": 0,
+  "missing_precip_percentage": 0.0,
+  "negative_count": 0,
+  "non_finite_count": 0,
+  "invalid_coordinates_count": 0,
+  "date_coverage_per_location": {
+    "KA_MANGALURU": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_UDUPI": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_KARWAR": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_SHIVAMOGGA": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_CHIKKAMAGALURU": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_MADIKERI": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_HASSAN": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_BELAGAVI": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_DHARWAD": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_VIJAYAPURA": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_BAGALKOTE": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_GADAG": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_HAVERI": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_KALABURAGI": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_BIDAR": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_RAICHUR": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_KOPPAL": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_YADGIR": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_DAVANAGERE": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_CHITRADURGA": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_BALLARI": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_VIJAYANAGARA": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_TUMAKURU": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    },
+    "KA_MANDYA": {
+      "record_count": 27394,
+      "unique_days": 27394,
+      "expected_days": 27394,
+      "min_date": "1950-01-01",
+      "max_date": "2024-12-31"
+    }
+  },
+  "locations_with_missing_dates": {},
+  "cleaning_summary": {
+    "initial_records": 657456,
+    "final_clean_records": 657456,
+    "duplicates_removed": 0,
+    "nan_observations_retained_for_window_invalidation": 0
+  }
+}

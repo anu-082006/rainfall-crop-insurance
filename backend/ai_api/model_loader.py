@@ -21,10 +21,23 @@ logger = logging.getLogger("agrishield_ai_service.model_loader")
 # Path discovery for Person 2's ML repository
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent.parent  # C:\MyFiles\Projects\Rainfall_Crop_Insurance
-TEAM_REPO_DIR = PROJECT_ROOT / "team_repo"
+
+# Handle discovery whether running inside team_repo or from workspace root
+if (PROJECT_ROOT / "ml").exists() and (PROJECT_ROOT / "models").exists():
+    TEAM_REPO_DIR = PROJECT_ROOT
+elif (PROJECT_ROOT / "team_repo" / "ml").exists():
+    TEAM_REPO_DIR = PROJECT_ROOT / "team_repo"
+else:
+    TEAM_REPO_DIR = PROJECT_ROOT
 
 if TEAM_REPO_DIR.exists() and str(TEAM_REPO_DIR) not in sys.path:
     sys.path.insert(0, str(TEAM_REPO_DIR))
+
+# Try importing canonical model path from Person 2's ml.config
+try:
+    from ml.config import RANDOM_FOREST_MODEL_PATH as CANONICAL_RF_PATH
+except ImportError:
+    CANONICAL_RF_PATH = None
 
 # Default metadata dictionaries
 PRODUCTION_METADATA: Dict[str, Any] = {
@@ -164,10 +177,16 @@ class ArtifactManager:
         cls._crop_table_loaded = True
         cls._version_warnings.clear()
 
-        # Check if model artifact exists in team_repo/models/random_forest.joblib
-        model_artifact = TEAM_REPO_DIR / "models" / "random_forest.joblib"
+        # Resolve model artifact path (prefer canonical ml/config path)
+        model_artifact = None
+        if CANONICAL_RF_PATH and CANONICAL_RF_PATH.exists():
+            model_artifact = CANONICAL_RF_PATH
+        elif (TEAM_REPO_DIR / "models" / "random_forest.joblib").exists():
+            model_artifact = TEAM_REPO_DIR / "models" / "random_forest.joblib"
+        elif (PROJECT_ROOT / "models" / "random_forest.joblib").exists():
+            model_artifact = PROJECT_ROOT / "models" / "random_forest.joblib"
 
-        if model_artifact.exists():
+        if model_artifact and model_artifact.exists():
             try:
                 from sklearn.exceptions import InconsistentVersionWarning
 

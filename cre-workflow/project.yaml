@@ -1,0 +1,15 @@
+# ==========================================================================
+# CRE PROJECT SETTINGS FILE (Chainlink Runtime Environment)
+# ==========================================================================
+default: &default
+  cre-cli:
+    don-family: "zone-a"
+  rpcs:
+    - chain-name: ethereum-testnet-sepolia
+      url: http://127.0.0.1:8545
+    - chain-name: ethereum-mainnet
+      url: https://ethereum.publicnode.com/
+
+local-settings: *default
+staging-settings: *default
+production-settings: *default

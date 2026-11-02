@@ -574,7 +574,7 @@ python -m pytest tests/ -v
 | **Smart Contracts** | Policy Enrollment (`enroll()`) | **Complete** | Verified on Anvil with `Deploy.s.sol` & frontend |
 | **Smart Contracts** | Payout Escrow & Claim (`claim()`) | **Complete** | Verified on Anvil with funded 1,000,000 RTT pool |
 | **Smart Contracts** | Report Receiver (`RainfallReportReceiver`) | **Complete** | Verified with mock forwarder unit tests |
-| **Machine Learning** | 24-Year Rainfall Dataset Pipeline | **Complete** | Verified on Karnataka ERA5 data (2000–2023) |
+| **Machine Learning** | 75-Year Rainfall Dataset Pipeline | **Complete** | Verified on Karnataka ERA5 data (1950–2024) |
 | **Machine Learning** | Calibrated Random Forest Model | **Complete** | Verified with 8 ML tests; 34.8 MB joblib serialized |
 | **AI Backend** | FastAPI Recommendation API (`/recommend`) | **Complete** | Verified via `pytest` (9 tests) & live curl check |
 | **AI Backend** | Production ML Model Serving | **Complete** | Verified loading `random_forest` (v`1.0-production`) |

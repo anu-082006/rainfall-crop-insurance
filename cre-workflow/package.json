@@ -1,0 +1,22 @@
+{
+  "name": "crop-insurance-cre-workflow",
+  "version": "1.0.0",
+  "description": "Chainlink Runtime Environment (CRE) workflow for rainfall crop insurance",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "simulate": "cre workflow simulate rainfall-workflow --target local-settings",
+    "simulate:broadcast": "cre workflow simulate rainfall-workflow --broadcast --target local-settings"
+  },
+  "dependencies": {
+    "@chainlink/cre-sdk": "^1.23.0",
+    "viem": "^2.23.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.4.4",
+    "typescript": "^5.7.0"
+  }
+}

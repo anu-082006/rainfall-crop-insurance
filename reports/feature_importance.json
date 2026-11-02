@@ -1,0 +1,16 @@
+{
+  "expected_shortfall_margin": 0.4214,
+  "climatological_mean_window_rainfall": 0.2139,
+  "climatological_std_window_rainfall": 0.1146,
+  "start_day_of_year": 0.0721,
+  "start_month": 0.0555,
+  "rainfall_prev_30d": 0.0298,
+  "threshold_mm": 0.023,
+  "threshold_per_day": 0.0215,
+  "rainfall_prev_90d": 0.0132,
+  "rainfall_prev_365d": 0.0119,
+  "latitude": 0.0084,
+  "duration_days": 0.0065,
+  "elevation_m": 0.0043,
+  "longitude": 0.0039
+}
