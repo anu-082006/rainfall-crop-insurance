@@ -1,10 +1,48 @@
-# Foundry
+# ==============================================================================
+# AgriShield Team Repository .gitignore
+# ==============================================================================
+
+# Foundry & Blockchain
 out/
 cache/
 broadcast/*/31337/
 
-# Secrets
-.env
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+frontend/out/
+frontend/build/
+*.tsbuildinfo
 
-# macOS
+# Python / Backend AI
+__pycache__/
+backend/**/__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+backend/**/.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+
+# Environment & Secret Files (Never commit credentials)
+.env
+.env.local
+.env.*.local
+frontend/.env.local
+frontend/.env.*.local
+backend/**/.env
+backend/**/.env.local
+*.pem
+*.key
+
+# Operating System & IDE
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log
