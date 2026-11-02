@@ -1,0 +1,15 @@
+crop,district,season,sowing_start_month,sowing_end_month,harvest_start_month,harvest_end_month,growth_duration_days,critical_stage_name,critical_stage_start_das,critical_stage_end_das,source,source_confidence
+Groundnut,ALL,Kharif,6,7,10,11,110,Pegging and Pod Formation,40,70,UAS Bengaluru Agrometeorology Advisory & ICAR-DGR,high
+Groundnut,Tumakuru,Kharif,6,7,10,11,110,Pegging and Pod Formation,40,70,UAS Bengaluru Package of Practices & APEDA Survey,high
+Groundnut,Chitradurga,Kharif,6,7,10,11,110,Pegging and Pod Formation,40,70,UAS Bengaluru Package of Practices & APEDA Survey,high
+Groundnut,Ballari,Kharif,6,7,10,11,115,Pegging and Pod Formation,40,75,UAS Raichur Agrometeorology Advisory,high
+Groundnut,Kolar,Kharif,6,7,10,11,105,Pegging and Pod Formation,35,70,UAS Bengaluru Package of Practices,high
+Groundnut,Belagavi,Kharif,6,7,10,11,110,Pegging and Pod Formation,40,70,UAS Dharwad Package of Practices,high
+Groundnut,Vijayapura,Kharif,6,7,9,10,105,Pegging and Pod Formation,35,65,UAS Dharwad Package of Practices,medium
+Groundnut,Dharwad,Kharif,6,7,10,11,110,Pegging and Pod Formation,40,70,UAS Dharwad Package of Practices,high
+Groundnut,Gadag,Kharif,6,7,10,11,105,Pegging and Pod Formation,35,65,UAS Dharwad Package of Practices,medium
+Groundnut,Chikkaballapura,Kharif,6,7,10,11,105,Pegging and Pod Formation,35,70,UAS Bengaluru Package of Practices,high
+Groundnut,ALL,Rabi/Summer,11,1,3,4,115,Pegging and Pod Formation,45,75,Directorate of Economics & Statistics Karnataka,high
+Groundnut,Ballari,Rabi/Summer,11,12,3,4,115,Pegging and Pod Formation,45,75,UAS Raichur Agrometeorology Advisory,high
+Groundnut,Raichur,Rabi/Summer,11,12,3,4,120,Pegging and Pod Formation,45,75,UAS Raichur Agrometeorology Advisory,high
+Groundnut,Tumakuru,Rabi/Summer,12,1,3,4,115,Pegging and Pod Formation,45,75,UAS Bengaluru Package of Practices,medium
