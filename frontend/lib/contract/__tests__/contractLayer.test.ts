@@ -212,6 +212,40 @@ describe("RPD Section 9: Contract Custom Error Mapping", () => {
     assert.equal(mapped.title, "Network Connection Error");
     assert.ok(mapped.message.includes("Anvil"));
   });
+
+  it("Preserves already mapped error and NEVER produces [object Object]", () => {
+    const original = {
+      title: "Transaction Reverted",
+      message: "Coverage start time must be in the future.",
+      isUserRejection: false,
+    };
+    const mapped = mapContractError(original);
+    assert.equal(mapped.title, original.title);
+    assert.equal(mapped.message, original.message);
+    assert.notEqual(mapped.message, "[object Object]");
+  });
+
+  it("Ensures plain or empty object error never returns [object Object]", () => {
+    const mapped1 = mapContractError({});
+    assert.notEqual(mapped1.message, "[object Object]");
+    assert.ok(mapped1.message.length > 0);
+
+    const mapped2 = mapContractError({ someRandomProp: 123 });
+    assert.notEqual(mapped2.message, "[object Object]");
+    assert.ok(mapped2.message.length > 0);
+  });
+
+  it("Decodes 4-byte custom error selectors directly", () => {
+    // 0xe8d4723a is StartNotInFuture()
+    const mappedFuture = mapContractError({ data: "0xe8d4723a" });
+    assert.equal(mappedFuture.title, "Transaction Reverted");
+    assert.ok(mappedFuture.message.includes("strictly in the future"));
+
+    // 0x9895f5a1 is StartNotOnFullHour()
+    const mappedHour = mapContractError({ data: "0x9895f5a1" });
+    assert.equal(mappedHour.title, "Transaction Reverted");
+    assert.ok(mappedHour.message.includes("full UTC hour"));
+  });
 });
 
 describe("RPD Appendix A.1: 13-Option Catalogue Verification", () => {

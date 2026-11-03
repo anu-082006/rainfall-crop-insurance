@@ -136,7 +136,16 @@ function EnrollContent() {
       return;
     }
 
-    if (!startTimeValidation.isValid) {
+    const freshValidation = validateStartTime(startTime, selectedOption.isDemo);
+    if (!freshValidation.isValid) {
+      setTx({
+        step: "failed",
+        error: {
+          title: "Invalid Start Time",
+          message: freshValidation.error || "Coverage start time must be in the future.",
+          isUserRejection: false,
+        },
+      });
       return;
     }
 

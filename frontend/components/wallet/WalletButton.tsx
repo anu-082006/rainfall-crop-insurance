@@ -9,11 +9,17 @@
  *        M3-W04: friendly message when MetaMask is not installed.
  */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useWallet } from "@/lib/wallet/walletContext";
 import { shortenAddress, formatRtt } from "@/lib/utils/formatters";
 
 export default function WalletButton() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const {
     status,
     address,
@@ -25,6 +31,21 @@ export default function WalletButton() {
     connect,
     disconnect,
   } = useWallet();
+
+  // ── Pre-hydration placeholder (matches server render deterministically) ────
+  if (!mounted) {
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <button
+          type="button"
+          disabled
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow opacity-90 cursor-default"
+        >
+          Connect Wallet
+        </button>
+      </div>
+    );
+  }
 
   // ── MetaMask not installed ───────────────────────────────────────────────
   if (!isMetaMaskInstalled) {

@@ -141,8 +141,11 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [rttBalance, setRttBalance] = useState<string | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState<boolean>(false);
 
-  const isMetaMaskInstalled = detectMetaMask();
+  useEffect(() => {
+    setIsMetaMaskInstalled(detectMetaMask());
+  }, []);
 
   const isCorrectNetwork = chainId === CHAIN_ID;
 
