@@ -3,6 +3,7 @@
 /**
  * ErrorNotice.tsx
  * Reusable inline error display component.
+ * Upgraded to InsurTech dark theme with glowing borders and backdrop blur.
  * Used throughout the app to show plain-language error messages (RPD section 9).
  * Never renders null values, zeros or made-up data on error — only the message.
  */
@@ -22,19 +23,19 @@ interface ErrorNoticeProps {
 
 const VARIANT_STYLES = {
   error: {
-    container: "bg-red-50 border border-red-200 text-red-800",
-    icon: "text-red-500",
-    title: "text-red-700",
+    container: "bg-rose-50 dark:bg-rose-950/30 text-rose-800 dark:text-rose-200 shadow-md",
+    icon: "text-rose-600 dark:text-rose-400",
+    title: "text-rose-900 dark:text-rose-100 font-bold",
   },
   warning: {
-    container: "bg-amber-50 border border-amber-200 text-amber-800",
-    icon: "text-amber-500",
-    title: "text-amber-700",
+    container: "bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-200 shadow-md",
+    icon: "text-amber-600 dark:text-amber-400",
+    title: "text-amber-900 dark:text-amber-100 font-bold",
   },
   info: {
-    container: "bg-blue-50 border border-blue-200 text-blue-800",
-    icon: "text-blue-500",
-    title: "text-blue-700",
+    container: "bg-cyan-50 dark:bg-cyan-950/30 text-cyan-800 dark:text-cyan-200 shadow-md",
+    icon: "text-cyan-600 dark:text-cyan-400",
+    title: "text-cyan-900 dark:text-cyan-100 font-bold",
   },
 };
 
@@ -51,7 +52,7 @@ export default function ErrorNotice({
   return (
     <div
       role="alert"
-      className={`flex items-start gap-3 rounded-lg p-4 text-sm ${styles.container} ${className}`}
+      className={`flex items-start gap-3 rounded-xl p-4 text-sm ${styles.container} ${className}`}
     >
       {/* Icon */}
       <svg
@@ -79,9 +80,9 @@ export default function ErrorNotice({
 
       <div className="flex-1 min-w-0">
         {title && (
-          <p className={`font-semibold mb-1 ${styles.title}`}>{title}</p>
+          <p className={`mb-1 ${styles.title}`}>{title}</p>
         )}
-        <p className="break-words">{message}</p>
+        <p className="break-words leading-relaxed text-slate-300">{message}</p>
       </div>
     </div>
   );

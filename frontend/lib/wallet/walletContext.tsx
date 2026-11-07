@@ -71,16 +71,34 @@ export interface WalletState {
 // ── Context ──────────────────────────────────────────────────────────────────
 const WalletContext = createContext<WalletState | null>(null);
 
+// ── Types ────────────────────────────────────────────────────────────────────
+interface Eip1193Provider {
+  request: (args: { method: string; params?: unknown[] | Record<string, unknown> }) => Promise<unknown>;
+  on?: (event: string, listener: (arg: unknown) => void) => void;
+  removeListener?: (event: string, listener: (arg: unknown) => void) => void;
+  isMetaMask?: boolean;
+  providers?: Eip1193Provider[];
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
+function getInjectedProvider(): Eip1193Provider | null {
+  if (typeof window === "undefined") return null;
+  const anyWindow = window as unknown as { ethereum?: Eip1193Provider };
+  if (!anyWindow.ethereum) return null;
+
+  // Handle multiple wallet extensions (e.g. MetaMask + Coinbase / Phantom / Rabby)
+  if (Array.isArray(anyWindow.ethereum.providers)) {
+    const metaMask = anyWindow.ethereum.providers.find(
+      (p) => p.isMetaMask
+    );
+    return metaMask || anyWindow.ethereum.providers[0];
+  }
+
+  return anyWindow.ethereum;
+}
+
 function detectMetaMask(): boolean {
-  if (typeof window === "undefined") return false;
-  return (
-    typeof window.ethereum !== "undefined" &&
-    (window.ethereum.isMetaMask === true ||
-      // Some wallets inject as an array
-      (Array.isArray(window.ethereum.providers) &&
-        window.ethereum.providers.some((p: { isMetaMask?: boolean }) => p.isMetaMask)))
-  );
+  return !!getInjectedProvider();
 }
 
 function chainIdToHex(id: number): string {
@@ -92,7 +110,7 @@ async function fetchRttBalance(
   provider: BrowserProvider,
 ): Promise<string | null> {
   if (MOCK_MODE || !CONTRACT_ADDRESS) {
-    // Mock mode with no address: return a mock balance for UI display
+    // Mock mode with no address: return simulated test balance for UI display
     return "1000.0";
   }
   try {
@@ -116,7 +134,7 @@ async function fetchRttBalance(
     const raw: bigint = await contract.balanceOf(address);
     return formatUnits(raw, RTT_DECIMALS);
   } catch {
-    return null;
+    return MOCK_MODE ? "1000.0" : null;
   }
 }
 
@@ -143,33 +161,63 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState<boolean>(false);
 
+  // Initialize and listen for asynchronous extension injection
   useEffect(() => {
-    setIsMetaMaskInstalled(detectMetaMask());
+    const check = () => {
+      const detected = detectMetaMask();
+      setIsMetaMaskInstalled(detected);
+      return detected;
+    };
+
+    if (check()) return;
+
+    const onInit = () => check();
+    if (typeof window !== "undefined") {
+      window.addEventListener("ethereum#initialized", onInit, { once: true });
+      const t1 = setTimeout(check, 150);
+      const t2 = setTimeout(check, 500);
+      const t3 = setTimeout(check, 1200);
+
+      return () => {
+        window.removeEventListener("ethereum#initialized", onInit);
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
   }, []);
 
-  const isCorrectNetwork = chainId === CHAIN_ID;
+  const isCorrectNetwork = MOCK_MODE ? true : chainId === CHAIN_ID;
 
   // ── Internal: load balance ───────────────────────────────────────────────
   const loadBalance = useCallback(async (addr: string) => {
-    if (!isMetaMaskInstalled) return;
+    const providerObj = getInjectedProvider();
+    if (!providerObj) {
+      if (MOCK_MODE) setRttBalance("1000.0");
+      return;
+    }
     setBalanceLoading(true);
     try {
-      const provider = new BrowserProvider(window.ethereum);
+      if (MOCK_MODE || !CONTRACT_ADDRESS) {
+        setRttBalance("1000.0");
+        return;
+      }
+      const provider = new BrowserProvider(providerObj);
       const balance = await fetchRttBalance(addr, provider);
-      setRttBalance(balance);
+      setRttBalance(balance ?? (MOCK_MODE ? "1000.0" : null));
     } catch {
-      setRttBalance(null);
+      setRttBalance(MOCK_MODE ? "1000.0" : null);
     } finally {
       setBalanceLoading(false);
     }
-  }, [isMetaMaskInstalled]);
+  }, []);
 
   // ── Internal: apply account state ───────────────────────────────────────
   const applyAccount = useCallback(
     async (addr: string, currentChainId: number) => {
       setAddress(addr);
       setChainId(currentChainId);
-      if (currentChainId !== CHAIN_ID) {
+      if (!MOCK_MODE && currentChainId !== CHAIN_ID) {
         setStatus("wrong_network");
       } else {
         setStatus("connected");
@@ -181,38 +229,53 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   // ── Connect ──────────────────────────────────────────────────────────────
   const connect = useCallback(async () => {
-    if (!isMetaMaskInstalled) {
+    if (typeof window === "undefined" || !window.ethereum) {
       setStatus("no_metamask");
+      setError("MetaMask extension not detected. Please install or unlock MetaMask.");
       return;
     }
+
     setStatus("connecting");
     setError(null);
+
     try {
+      // Direct call on window.ethereum triggers the MetaMask popup window directly
       const accounts = (await window.ethereum.request({
         method: "eth_requestAccounts",
       })) as string[];
+
       const chainHex = (await window.ethereum.request({
         method: "eth_chainId",
       })) as string;
+
       const detectedChainId = parseInt(chainHex, 16);
-      if (accounts.length === 0) {
+
+      if (!accounts || accounts.length === 0) {
         setStatus("disconnected");
-        setError("No accounts returned by MetaMask.");
+        setError("No accounts selected in MetaMask.");
         return;
       }
+
       await applyAccount(accounts[0], detectedChainId);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Connection failed.";
-      // User rejected
-      if (typeof err === "object" && err !== null && "code" in err && (err as { code: number }).code === 4001) {
+      const anyErr = err as { code?: number; message?: string };
+      // User cancelled
+      if (anyErr?.code === 4001) {
         setStatus("disconnected");
-        setError(null); // Neutral – user cancelled
-      } else {
-        setStatus("disconnected");
-        setError(msg);
+        setError(null);
+        return;
       }
+      // Request already pending in MetaMask popup
+      if (anyErr?.code === -32002) {
+        setStatus("disconnected");
+        setError("Approval request already pending in MetaMask. Please click your browser's MetaMask extension icon to approve.");
+        return;
+      }
+      const msg = err instanceof Error ? err.message : anyErr?.message ?? "Wallet connection failed.";
+      setStatus("disconnected");
+      setError(msg);
     }
-  }, [isMetaMaskInstalled, applyAccount]);
+  }, [applyAccount]);
 
   // ── Disconnect ───────────────────────────────────────────────────────────
   const disconnect = useCallback(() => {
@@ -225,18 +288,20 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   // ── Switch network ───────────────────────────────────────────────────────
   const switchNetwork = useCallback(async () => {
-    if (!isMetaMaskInstalled) return;
+    const provider = getInjectedProvider();
+    if (!provider) return;
     setError(null);
     try {
-      await window.ethereum.request({
+      await provider.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: chainIdToHex(CHAIN_ID) }],
       });
     } catch (err: unknown) {
+      const anyErr = err as { code?: number; message?: string };
       // Error code 4902 = chain not added yet
-      if (typeof err === "object" && err !== null && "code" in err && (err as { code: number }).code === 4902) {
+      if (anyErr?.code === 4902) {
         try {
-          await window.ethereum.request({
+          await provider.request({
             method: "wallet_addEthereumChain",
             params: [
               {
@@ -248,15 +313,15 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
             ],
           });
         } catch (addErr: unknown) {
-          const msg = addErr instanceof Error ? addErr.message : "Failed to add network.";
+          const msg = addErr instanceof Error ? addErr.message : "Failed to add network. (Ensure local node is running if using Anvil).";
           setError(msg);
         }
-      } else if (typeof err === "object" && err !== null && "code" in err && (err as { code: number }).code !== 4001) {
+      } else if (anyErr?.code !== 4001) {
         const msg = err instanceof Error ? (err as Error).message : "Failed to switch network.";
         setError(msg);
       }
     }
-  }, [isMetaMaskInstalled]);
+  }, []);
 
   // ── Refresh balance ──────────────────────────────────────────────────────
   const refreshBalance = useCallback(async () => {
@@ -265,23 +330,29 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
 
   // ── MetaMask event listeners (M3-W03) ───────────────────────────────────
   useEffect(() => {
-    if (!isMetaMaskInstalled) {
-      setStatus("no_metamask");
+    const provider = getInjectedProvider();
+    if (!provider || typeof provider.on !== "function") {
       return;
     }
 
-    const handleAccountsChanged = async (accounts: string[]) => {
-      if (accounts.length === 0) {
+    const handleAccountsChanged = async (accountsRaw: unknown) => {
+      const accounts = accountsRaw as string[];
+      if (!accounts || accounts.length === 0) {
         disconnect();
       } else {
-        const chainHex = (await window.ethereum.request({
-          method: "eth_chainId",
-        })) as string;
-        await applyAccount(accounts[0], parseInt(chainHex, 16));
+        try {
+          const chainHex = (await provider.request({
+            method: "eth_chainId",
+          })) as string;
+          await applyAccount(accounts[0], parseInt(chainHex, 16));
+        } catch {
+          await applyAccount(accounts[0], CHAIN_ID);
+        }
       }
     };
 
-    const handleChainChanged = async (chainHex: string) => {
+    const handleChainChanged = async (chainHexRaw: unknown) => {
+      const chainHex = chainHexRaw as string;
       const newChainId = parseInt(chainHex, 16);
       setChainId(newChainId);
       if (address) {
@@ -289,24 +360,28 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    window.ethereum.on("accountsChanged", handleAccountsChanged);
-    window.ethereum.on("chainChanged", handleChainChanged);
+    provider.on("accountsChanged", handleAccountsChanged);
+    provider.on("chainChanged", handleChainChanged);
 
     // Auto-connect if MetaMask already has a permitted account (no popup)
-    (window.ethereum.request({ method: "eth_accounts" }) as Promise<string[]>)
-      .then(async (accounts) => {
-        if (accounts.length > 0) {
-          const chainHex = (await window.ethereum.request({
-            method: "eth_chainId",
-          })) as string;
-          await applyAccount(accounts[0], parseInt(chainHex, 16));
-        }
-      })
-      .catch(() => {/* silent – MetaMask may block the call */});
+    if (typeof provider.request === "function") {
+      (provider.request({ method: "eth_accounts" }) as Promise<string[]>)
+        .then(async (accounts) => {
+          if (accounts && accounts.length > 0) {
+            const chainHex = (await provider.request({
+              method: "eth_chainId",
+            })) as string;
+            await applyAccount(accounts[0], parseInt(chainHex, 16));
+          }
+        })
+        .catch(() => {/* silent */});
+    }
 
     return () => {
-      window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
-      window.ethereum.removeListener("chainChanged", handleChainChanged);
+      if (typeof provider.removeListener === "function") {
+        provider.removeListener("accountsChanged", handleAccountsChanged);
+        provider.removeListener("chainChanged", handleChainChanged);
+      }
     };
   }, [isMetaMaskInstalled, address, applyAccount, disconnect]);
 

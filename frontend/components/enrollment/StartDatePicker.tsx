@@ -8,6 +8,8 @@
  * - Options 1–12 (>= 30 days): Requires whole-day starts (00:00:00 UTC).
  * - Pre-fill support for AI recommendation suggested date (M3-E08).
  * - Displays both local and UTC representations.
+ *
+ * Upgraded to InsurTech dark Bento design with monospace time displays and glowing indicators.
  */
 
 import React, { useId, useMemo } from "react";
@@ -112,11 +114,12 @@ export default function StartDatePicker({
     <div className="space-y-4">
       {/* AI Pre-fill Notification (M3-E08) */}
       {aiSuggestedDate && (
-        <div className="flex items-center justify-between rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs text-emerald-900">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="flex items-center justify-between rounded-2xl bg-[#1a5b55]/15 px-4 py-3 text-xs text-[#1a5b55] dark:text-[#4ea399] shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex h-2 w-2 rounded-full bg-[#1a5b55] dark:bg-[#4ea399]" />
             <span>
-              <strong>AI Suggested Start:</strong> {formatUtcDateTime(aiSuggestedDate)}
+              <strong className="font-extrabold">AI Suggested Start:</strong>{" "}
+              <span className="font-mono font-bold">{formatUtcDateTime(aiSuggestedDate)}</span>
             </span>
           </div>
           {!isAiSuggestionApplied && (
@@ -124,7 +127,7 @@ export default function StartDatePicker({
               type="button"
               onClick={applyAiSuggestion}
               disabled={disabled}
-              className="text-xs font-semibold text-emerald-700 underline hover:text-emerald-900 focus:outline-none"
+              className="text-xs font-bold underline hover:opacity-80 focus:outline-none transition-opacity cursor-pointer"
             >
               Apply AI Date
             </button>
@@ -137,8 +140,8 @@ export default function StartDatePicker({
         <div className="space-y-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor={dateInputId} className="block text-xs font-semibold text-gray-700">
-                Start Date (UTC) <span className="text-red-500">*</span>
+              <label htmlFor={dateInputId} className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Start Date (UTC) <span className="text-rose-500">*</span>
               </label>
               <input
                 id={dateInputId}
@@ -147,13 +150,13 @@ export default function StartDatePicker({
                 value={demoDateUtcString}
                 min={toDateOnlyInput(Math.floor(Date.now() / 1000))}
                 onChange={(e) => handleDemoDateOrHourChange(e.target.value, demoHourUtc)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:bg-gray-100"
+                className="mt-1.5 block w-full rounded-2xl bg-slate-100 dark:bg-[#070A0F] px-4 py-2.5 text-sm font-mono text-slate-900 dark:text-slate-100 shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-500/40 disabled:opacity-50 border-none"
               />
             </div>
 
             <div>
-              <label htmlFor={hourSelectId} className="block text-xs font-semibold text-gray-700">
-                Start Hour (UTC, Full Hour) <span className="text-red-500">*</span>
+              <label htmlFor={hourSelectId} className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Start Hour (UTC, Full Hour) <span className="text-rose-500">*</span>
               </label>
               <select
                 id={hourSelectId}
@@ -162,10 +165,10 @@ export default function StartDatePicker({
                 onChange={(e) =>
                   handleDemoDateOrHourChange(demoDateUtcString, Number(e.target.value))
                 }
-                className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 disabled:bg-gray-100"
+                className="mt-1.5 block w-full rounded-2xl bg-slate-100 dark:bg-[#070A0F] px-4 py-2.5 text-sm font-mono text-slate-900 dark:text-slate-100 shadow-inner focus:outline-none focus:ring-2 focus:ring-purple-500/40 disabled:opacity-50 border-none"
               >
                 {Array.from({ length: 24 }, (_, i) => (
-                  <option key={i} value={i}>
+                  <option key={i} value={i} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
                     {String(i).padStart(2, "0")}:00:00 UTC
                   </option>
                 ))}
@@ -174,12 +177,12 @@ export default function StartDatePicker({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs text-gray-500">Quick presets:</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Quick presets:</span>
             <button
               type="button"
               disabled={disabled}
               onClick={setNextHour}
-              className="rounded border border-purple-200 bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50"
+              className="rounded-xl bg-purple-500/15 px-3 py-1.5 text-xs font-bold text-purple-700 dark:text-purple-300 hover:bg-purple-500/25 transition-all shadow-sm disabled:opacity-50 cursor-pointer"
             >
               Next Full Hour
             </button>
@@ -187,14 +190,14 @@ export default function StartDatePicker({
               type="button"
               disabled={disabled}
               onClick={() => onChange(getNextFullHourUnix() + 3600 * 2)}
-              className="rounded border border-purple-200 bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100 disabled:opacity-50"
+              className="rounded-xl bg-purple-500/15 px-3 py-1.5 text-xs font-bold text-purple-700 dark:text-purple-300 hover:bg-purple-500/25 transition-all shadow-sm disabled:opacity-50 cursor-pointer"
             >
               +2 Hours
             </button>
           </div>
 
-          <p className="text-xs text-purple-700">
-            <strong>Full-Hour Rule:</strong> Demo policy start time is locked to exact full hours
+          <p className="text-xs text-purple-700 dark:text-purple-300/80">
+            <strong className="font-bold">Full-Hour Rule:</strong> Demo policy start time is locked to exact full hours
             (:00:00) per contract specifications.
           </p>
         </div>
@@ -202,8 +205,8 @@ export default function StartDatePicker({
         /* Mode 2: Options 1–12 (Standard Seasonal Policies: Whole Day UTC Alignment) */
         <div className="space-y-3">
           <div>
-            <label htmlFor={dateInputId} className="block text-xs font-semibold text-gray-700">
-              Coverage Start Date (00:00:00 UTC) <span className="text-red-500">*</span>
+            <label htmlFor={dateInputId} className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              Coverage Start Date (00:00:00 UTC) <span className="text-rose-500">*</span>
             </label>
             <input
               id={dateInputId}
@@ -212,17 +215,17 @@ export default function StartDatePicker({
               min={minUtcDayString}
               value={standardDateString}
               onChange={handleStandardDateChange}
-              className="mt-1 block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+              className="mt-1.5 block w-full rounded-2xl bg-slate-100 dark:bg-[#070A0F] px-4 py-2.5 text-sm font-mono text-slate-900 dark:text-slate-100 shadow-inner focus:outline-none focus:ring-2 focus:ring-[#1a5b55]/50 disabled:opacity-50 border-none"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs text-gray-500">Quick presets:</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Quick presets:</span>
             <button
               type="button"
               disabled={disabled}
               onClick={setTomorrowUtc}
-              className="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+              className="rounded-xl bg-[#1a5b55]/15 px-3 py-1.5 text-xs font-bold text-[#1a5b55] dark:text-[#4ea399] hover:bg-[#1a5b55]/25 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             >
               Tomorrow (00:00 UTC)
             </button>
@@ -230,14 +233,14 @@ export default function StartDatePicker({
               type="button"
               disabled={disabled}
               onClick={setNextMondayUtc}
-              className="rounded border border-blue-200 bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+              className="rounded-xl bg-[#1a5b55]/15 px-3 py-1.5 text-xs font-bold text-[#1a5b55] dark:text-[#4ea399] hover:bg-[#1a5b55]/25 transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             >
               Next Monday (00:00 UTC)
             </button>
           </div>
 
-          <p className="text-xs text-gray-500">
-            <strong>Whole-Day Rule:</strong> Standard crop insurance policies start at 00:00:00 UTC
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            <strong className="text-slate-700 dark:text-slate-300 font-bold">Whole-Day Rule:</strong> Standard crop insurance policies start at 00:00:00 UTC
             on the selected day.
           </p>
         </div>
@@ -246,23 +249,23 @@ export default function StartDatePicker({
       {/* Selected Time Display & Verification */}
       {value > 0 && (
         <div
-          className={`rounded-lg border px-3.5 py-2.5 text-xs ${
+          className={`rounded-2xl p-4 text-xs shadow-md transition-all ${
             validation.isValid
-              ? "border-gray-200 bg-gray-50 text-gray-700"
-              : "border-red-200 bg-red-50 text-red-700"
+              ? "bg-slate-100 dark:bg-[#0D1218] text-slate-700 dark:text-slate-300"
+              : "bg-rose-500/10 text-rose-700 dark:text-rose-300"
           }`}
         >
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="font-semibold">Selected Start:</span>{" "}
-              <span className="font-mono">{formatUtcDateTime(value)}</span>
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Selected Start:</span>{" "}
+              <span className="font-mono font-bold text-slate-900 dark:text-white">{formatUtcDateTime(value)}</span>
             </div>
-            <div className="text-gray-500">
+            <div className="text-slate-500 dark:text-slate-400 font-mono text-[11px]">
               (Local: {formatUnixTimestamp(value)})
             </div>
           </div>
           {!validation.isValid && validation.error && (
-            <p className="mt-1.5 font-semibold text-red-600">{validation.error}</p>
+            <p className="mt-1.5 font-bold text-rose-600 dark:text-rose-400">{validation.error}</p>
           )}
         </div>
       )}

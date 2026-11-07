@@ -4,6 +4,7 @@
  * app/catalogue/page.tsx
  *
  * Screen 2 & Screen 3: Policy Catalogue & AI Advisory (M3-C01 to M3-C04, M3-AP01 to AP07, M3-AP09).
+ * Upgraded to InsurTech Bento Grid dark theme with Geist typography and neon accents.
  *
  * Requirements:
  * - Reads catalogue dynamically from contract or mock reader (never hardcoded in UI).
@@ -25,6 +26,7 @@ import AiRecommendationPanel from "@/components/ai/AiRecommendationPanel";
 import LoadingSpinner from "@/components/shared/LoadingSpinner";
 import ErrorNotice from "@/components/shared/ErrorNotice";
 import { ROUTES } from "@/lib/utils/constants";
+import { CropSeedPacket, CropTwinLeaves } from "@/components/shared/CropIllustrations";
 
 export default function CataloguePage() {
   const { address } = useWallet();
@@ -89,31 +91,57 @@ export default function CataloguePage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       {/* Page Title & Context Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-          Policy Catalogue
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Choose from 13 fixed parametric crop insurance options. Coverage triggers and payouts are predetermined by the smart contract.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1a5b55]/15 px-3 py-1 text-xs font-bold text-[#1a5b55] dark:text-[#4ea399] shadow-xs">
+              <CropSeedPacket className="h-4 w-4" />
+              <span>On-Chain Catalogue &bull; 13 Options</span>
+            </span>
+            <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">
+              Zero Premium (RTT)
+            </span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-light tracking-tight text-slate-900 dark:text-white">
+            Policy Catalogue
+          </h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-2xl">
+            Choose from 13 fixed parametric crop insurance options. Coverage triggers and payouts are predetermined by the smart contract.
+          </p>
+        </div>
+
+        {profile && (
+          <div className="floating-card px-4 py-3 rounded-2xl text-xs flex items-center gap-3 self-start sm:self-auto shadow-md">
+            <CropTwinLeaves className="h-6 w-6" />
+            <div>
+              <p className="text-slate-500 dark:text-slate-400">Insured Farm Profile</p>
+              <p className="text-slate-900 dark:text-white font-mono font-bold">
+                {profile.crop.toUpperCase()} &bull; {profile.latitude.toFixed(2)}°N, {profile.longitude.toFixed(2)}°E
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Profile Prompt Banner (if profile missing) */}
       {!profile && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 floating-panel p-5 text-amber-800 dark:text-amber-200 shadow-xl bg-amber-500/10">
           <div className="flex items-center gap-3">
-            <svg className="h-5 w-5 text-amber-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-            </svg>
-            <p className="text-sm font-medium">
-              You haven&apos;t set up your farmer profile yet. Configure your location and crop to receive calibrated AI advisory recommendations.
-            </p>
+            <CropTwinLeaves className="h-8 w-8 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-bold text-slate-900 dark:text-amber-100">
+                Farmer profile not configured
+              </p>
+              <p className="text-xs text-slate-600 dark:text-amber-300/80 mt-0.5">
+                Set up your coordinates and crop to unlock calibrated AI risk advisory and deficit probabilities.
+              </p>
+            </div>
           </div>
           <Link
             href={ROUTES.PROFILE}
-            className="flex-shrink-0 rounded-lg bg-amber-600 px-4 py-2 text-xs font-bold text-white hover:bg-amber-700 transition"
+            className="flex-shrink-0 rounded-2xl bg-[#1a5b55] hover:bg-[#22726b] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:shadow-lg transition-all cursor-pointer"
           >
-            Set Up Profile
+            Set Up Profile &rarr;
           </Link>
         </div>
       )}

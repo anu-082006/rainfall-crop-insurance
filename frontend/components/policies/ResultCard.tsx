@@ -8,6 +8,8 @@
  * - Payout amount in RTT
  * - Clear explanation of deficit criteria
  * - Explicit notice that AI never determines eligibility or triggers payouts
+ *
+ * Upgraded to InsurTech dark Bento Grid styling with glowing outcome indicators and Geist typography.
  */
 
 import React from "react";
@@ -16,6 +18,11 @@ import { OnChainPolicy } from "@/lib/mock/mockPolicies";
 import { PolicyStatusResult } from "@/lib/contract/policyStatus";
 import { formatRtt } from "@/lib/utils/formatters";
 import { RTT_DECIMALS } from "@/lib/utils/constants";
+import {
+  HarvestPayoutCoins,
+  RainCloudCrop,
+  LeafShield,
+} from "@/components/shared/CropIllustrations";
 
 interface ResultCardProps {
   policy: OnChainPolicy;
@@ -29,12 +36,12 @@ export default function ResultCard({ policy, status }: ResultCardProps) {
   );
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-      <div className="border-b border-gray-100 pb-3">
-        <h3 className="text-base font-bold text-gray-900">
+    <div className="floating-panel p-6 shadow-xl">
+      <div className="border-b border-slate-100 dark:border-slate-800/60 pb-3.5">
+        <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
           Contract Eligibility &amp; Payout Result
         </h3>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Smart contract execution evaluation based on verified oracle data.
         </p>
       </div>
@@ -42,26 +49,22 @@ export default function ResultCard({ policy, status }: ResultCardProps) {
       <div className="mt-5 space-y-4">
         {/* Outcome 1: Claimed */}
         {status.code === "CLAIMED" && (
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
+          <div className="rounded-2xl bg-slate-50 dark:bg-[#0D1218] p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-700">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
+              <HarvestPayoutCoins className="h-8 w-8 flex-shrink-0" />
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Status: Settled
                 </span>
-                <h4 className="text-lg font-bold text-gray-900">
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white">
                   Payout Successfully Claimed
                 </h4>
               </div>
             </div>
-            <div className="mt-4 rounded-lg bg-white p-4 border border-gray-200">
+            <div className="mt-4 rounded-2xl bg-white dark:bg-[#070A0F] p-4 shadow-inner">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-500">Total Payout Transferred:</span>
-                <span className="font-mono text-base font-bold text-gray-900">{payoutFormatted}</span>
+                <span className="text-slate-500 dark:text-slate-400">Total Payout Transferred:</span>
+                <span className="font-mono text-base font-extrabold text-amber-600 dark:text-amber-400">{payoutFormatted}</span>
               </div>
             </div>
           </div>
@@ -69,31 +72,27 @@ export default function ResultCard({ policy, status }: ResultCardProps) {
 
         {/* Outcome 2: Eligible (Ready to claim) */}
         {status.code === "ELIGIBLE" && (
-          <div className="rounded-xl border border-emerald-300 bg-emerald-50/50 p-5">
+          <div className="rounded-2xl bg-[#1a5b55]/10 p-5 shadow-md">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600 text-white shadow-sm">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
+              <HarvestPayoutCoins className="h-8 w-8 flex-shrink-0" />
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#1a5b55] dark:text-[#4ea399]">
                   Deficit Condition Satisfied
                 </span>
-                <h4 className="text-lg font-bold text-emerald-950">
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white">
                   Policy is Eligible for Payout
                 </h4>
               </div>
             </div>
 
-            <div className="mt-4 rounded-lg bg-white p-4 border border-emerald-200 shadow-sm">
+            <div className="mt-4 rounded-2xl bg-white dark:bg-[#070A0F] p-4 shadow-sm">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-600 font-medium">Claimable Payout:</span>
-                <span className="font-mono text-lg font-black text-emerald-600">
+                <span className="text-slate-600 dark:text-slate-300 font-medium">Claimable Payout:</span>
+                <span className="font-mono text-xl font-black text-amber-600 dark:text-amber-400">
                   {payoutFormatted}
                 </span>
               </div>
-              <p className="mt-2 text-[11px] text-gray-500">
+              <p className="mt-2 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                 Observed rainfall ({policy.rainfallMm} mm) was strictly below the {policy.thresholdMm} mm
                 trigger threshold. Click the claim button below to transfer tokens to your connected wallet.
               </p>
@@ -103,29 +102,25 @@ export default function ResultCard({ policy, status }: ResultCardProps) {
 
         {/* Outcome 3: Not Eligible */}
         {status.code === "NOT_ELIGIBLE" && (
-          <div className="rounded-xl border border-red-200 bg-red-50/40 p-5">
+          <div className="rounded-2xl bg-rose-500/10 p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
+              <RainCloudCrop className="h-8 w-8 flex-shrink-0" />
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-red-600">
+                <span className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
                   Contract Verdict
                 </span>
-                <h4 className="text-lg font-bold text-red-950">
+                <h4 className="text-lg font-bold text-slate-900 dark:text-white">
                   Policy is Not Eligible for Payout
                 </h4>
               </div>
             </div>
 
-            <div className="mt-4 rounded-lg bg-white p-4 border border-red-200">
+            <div className="mt-4 rounded-2xl bg-white dark:bg-[#070A0F] p-4 shadow-sm">
               <div className="flex justify-between items-center text-xs">
-                <span className="text-gray-600 font-medium">Payout Amount:</span>
-                <span className="font-mono text-base font-bold text-gray-500">0 RTT</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">Payout Amount:</span>
+                <span className="font-mono text-base font-bold text-slate-400">0 RTT</span>
               </div>
-              <p className="mt-2 text-[11px] text-gray-600">
+              <p className="mt-2 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                 The oracle reported {policy.rainfallMm} mm of rainfall, which meets or exceeds the{" "}
                 {policy.thresholdMm} mm deficit threshold. Parametric coverage triggers only when rainfall
                 falls strictly below the threshold.
@@ -138,29 +133,25 @@ export default function ResultCard({ policy, status }: ResultCardProps) {
         {(status.code === "SCHEDULED" ||
           status.code === "ACTIVE" ||
           status.code === "AWAITING_REPORT") && (
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-5">
+          <div className="rounded-2xl bg-slate-50 dark:bg-[#0D1218] p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                <svg className="h-5 w-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
+              <LeafShield className="h-8 w-8 flex-shrink-0" />
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-700">
+                <span className="text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
                   Evaluation Pending
                 </span>
-                <h4 className="text-base font-bold text-gray-900">
+                <h4 className="text-base font-bold text-slate-900 dark:text-white">
                   Eligibility Evaluation Pending Oracle Report
                 </h4>
               </div>
             </div>
 
-            <div className="mt-4 rounded-lg bg-white p-4 border border-gray-200 text-xs text-gray-600">
+            <div className="mt-4 rounded-2xl bg-white dark:bg-[#070A0F] p-4 text-xs text-slate-700 dark:text-slate-300 shadow-sm">
               <div className="flex justify-between items-center">
-                <span>Maximum Potential Payout:</span>
-                <span className="font-mono font-bold text-gray-800">{payoutFormatted}</span>
+                <span className="text-slate-500 dark:text-slate-400">Maximum Potential Payout:</span>
+                <span className="font-mono font-extrabold text-amber-600 dark:text-amber-400">{payoutFormatted}</span>
               </div>
-              <p className="mt-2 text-[11px] text-gray-500">
+              <p className="mt-2 text-[11px] text-slate-500">
                 Eligibility will be computed on-chain once the coverage window concludes and the oracle report
                 is accepted.
               </p>
@@ -169,8 +160,8 @@ export default function ResultCard({ policy, status }: ResultCardProps) {
         )}
 
         {/* Mandatory Architectural Disclosure */}
-        <div className="rounded-lg bg-blue-50/50 p-3 text-[11px] text-blue-900">
-          <strong>Smart Contract Authority:</strong> Payout eligibility is determined solely by the smart
+        <div className="rounded-2xl bg-cyan-500/10 p-4 text-xs text-cyan-800 dark:text-cyan-200">
+          <strong className="text-cyan-700 dark:text-cyan-300">Smart Contract Authority:</strong> Payout eligibility is determined solely by the smart
           contract comparing recorded oracle precipitation against the fixed trigger. AI models are strictly
           advisory and have no role or authority in determining claim eligibility.
         </div>

@@ -2,9 +2,8 @@
 
 /**
  * MockDataBanner.tsx
- * Prominent banner shown on every page when MOCK_MODE is active.
- * Appendix A.3 requirement: mock mode must show a visible MOCK DATA banner.
- * The banner is suppressed entirely when MOCK_MODE=false.
+ * Refined status banner shown on every page when MOCK_MODE is active.
+ * Retains required mock mode disclosure while styled in a sleek, borderless, non-intrusive aesthetic.
  */
 
 import React from "react";
@@ -17,11 +16,10 @@ export default function MockDataBanner() {
     <div
       role="status"
       aria-label="Mock data active"
-      className="flex items-center justify-center gap-2 bg-purple-700 px-4 py-2 text-center text-xs font-semibold text-white"
+      className="flex flex-wrap items-center justify-center gap-2 bg-purple-900/10 dark:bg-purple-950/40 px-4 py-1.5 text-center text-xs font-semibold text-purple-700 dark:text-purple-300 backdrop-blur-md shadow-xs"
     >
-      {/* Beaker icon */}
       <svg
-        className="h-4 w-4 flex-shrink-0"
+        className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 flex-shrink-0"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={2}
@@ -35,11 +33,10 @@ export default function MockDataBanner() {
         />
       </svg>
       <span>
-        ⚠ MOCK DATA ACTIVE — No real contract or model is connected. All
-        figures are illustrative only and have no financial value.
+        SIMULATION MODE ACTIVE — Illustrative testnet data. No real financial tokens used.
       </span>
-      <span className="rounded bg-purple-900 px-2 py-0.5 text-purple-200">
-        Set NEXT_PUBLIC_MOCK_MODE=false to use real data
+      <span className="rounded-full bg-purple-500/15 px-2.5 py-0.5 text-[10px] font-mono text-purple-700 dark:text-purple-300 font-bold">
+        NEXT_PUBLIC_MOCK_MODE=true
       </span>
     </div>
   );

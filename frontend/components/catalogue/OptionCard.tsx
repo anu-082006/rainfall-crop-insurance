@@ -9,6 +9,8 @@
  * - Risk-tier color badges
  * - AI Recommended highlight badge and probability display (M3-AP02, M3-AP03)
  * - "Select & Enroll" CTA button leading to /enroll?option=ID
+ *
+ * Upgraded to borderless shadowy floating card with Primary Green #1a5b55.
  */
 
 import React from "react";
@@ -17,6 +19,7 @@ import { CatalogueOption } from "@/lib/mock/mockCatalogue";
 import { formatProbability, formatRainfall, formatRtt } from "@/lib/utils/formatters";
 import { fromDateOnlyInputToUtc } from "@/lib/utils/dateHelpers";
 import { ROUTES } from "@/lib/utils/constants";
+import { CropSeedPacket, CropLeaf } from "@/components/shared/CropIllustrations";
 
 interface OptionCardProps {
   option: CatalogueOption;
@@ -25,11 +28,11 @@ interface OptionCardProps {
   suggestedStartDate?: string | null;
 }
 
-const RISK_BADGES = {
-  Demo: "bg-purple-100 text-purple-800 border-purple-200",
-  Severe: "bg-red-100 text-red-800 border-red-200",
-  Moderate: "bg-amber-100 text-amber-800 border-amber-200",
-  Mild: "bg-blue-100 text-blue-800 border-blue-200",
+const RISK_BADGES: Record<string, string> = {
+  Demo: "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300",
+  Severe: "bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300",
+  Moderate: "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300",
+  Mild: "bg-sky-100 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300",
 };
 
 export default function OptionCard({
@@ -38,7 +41,7 @@ export default function OptionCard({
   deficitProbability,
   suggestedStartDate,
 }: OptionCardProps) {
-  const badgeStyle = RISK_BADGES[option.riskLabel] || "bg-gray-100 text-gray-800 border-gray-200";
+  const badgeStyle = RISK_BADGES[option.riskLabel] || "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
 
   const suggestedStartUnix = suggestedStartDate ? fromDateOnlyInputToUtc(suggestedStartDate) : undefined;
   const enrollHref = `${ROUTES.ENROLL}?option=${option.optionId}${
@@ -47,89 +50,89 @@ export default function OptionCard({
 
   return (
     <div
-      className={`relative flex flex-col justify-between rounded-xl border bg-white p-5 shadow-sm transition hover:shadow-md ${
+      className={`relative flex flex-col justify-between rounded-3xl floating-card p-6 shadow-md transition-all duration-300 ${
         recommended
-          ? "border-emerald-500 ring-2 ring-emerald-500/20"
-          : option.isDemo
-          ? "border-purple-300 bg-purple-50/20"
-          : "border-gray-200"
+          ? "ring-2 ring-[#1a5b55] dark:ring-[#4ea399]/50 shadow-xl"
+          : ""
       }`}
     >
-      {/* Demo or AI Recommended Banner */}
+      {/* Demo or AI Recommended Top Badge */}
       {option.isDemo && (
-        <div className="absolute -top-3 right-4 rounded-full bg-purple-700 px-3 py-0.5 text-xs font-bold text-white shadow-sm">
+        <div className="absolute -top-3 right-5 rounded-full bg-purple-700 px-3.5 py-0.5 text-[10px] font-mono font-bold text-white shadow-md">
           DEMO (2 HOURS)
         </div>
       )}
 
       {recommended && !option.isDemo && (
-        <div className="absolute -top-3 right-4 rounded-full bg-emerald-600 px-3 py-0.5 text-xs font-bold text-white shadow-sm">
-          AI RECOMMENDED
+        <div className="absolute -top-3 right-5 rounded-full bg-[#1a5b55] px-3 py-0.5 text-[10px] font-mono font-bold text-white shadow-sm flex items-center gap-1">
+          <CropLeaf className="h-3 w-3" />
+          <span>AI RECOMMENDED</span>
         </div>
       )}
 
       <div>
         {/* Header: Option ID & Risk Tier */}
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-xs font-bold uppercase tracking-wider text-gray-600">
-            Option #{option.optionId}
+          <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+            <CropSeedPacket className="h-4 w-4" />
+            <span>Option #{option.optionId}</span>
           </span>
-          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badgeStyle}`}>
+          <span className={`inline-flex items-center rounded-full px-3 py-0.5 text-[10px] font-mono font-bold shadow-xs ${badgeStyle}`}>
             {option.riskLabel} Cover
           </span>
         </div>
 
         {/* Duration */}
-        <div className="mt-3">
-          <p className="text-2xl font-extrabold text-gray-900">{option.durationLabel}</p>
-          <p className="text-xs text-gray-600 mt-0.5">
-            {option.isDemo ? "Fast-testing demo window" : "Standard agricultural window"}
+        <div className="mt-3.5">
+          <p className="text-2xl font-light tracking-tight text-slate-900 dark:text-white">{option.durationLabel}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-mono">
+            {option.isDemo ? "Contract simulation window" : "Seasonal agricultural window"}
           </p>
         </div>
 
         {/* Deficit Risk Probability Badge (M3-AP02 / M3-AP03) */}
         {!option.isDemo && deficitProbability !== undefined && deficitProbability !== null && (
-          <div className="mt-3 flex items-center justify-between rounded-lg bg-indigo-50/70 px-3 py-1.5 text-xs text-indigo-950 border border-indigo-100">
-            <span className="text-[11px] font-semibold text-indigo-700">AI Deficit Risk:</span>
-            <span className="font-mono font-bold text-indigo-950">
+          <div className="mt-3.5 flex items-center justify-between rounded-2xl bg-slate-50 dark:bg-[#080B0F] px-3.5 py-2 text-xs shadow-xs">
+            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">Shortfall Probability:</span>
+            <span className="font-mono font-bold text-[#1a5b55] dark:text-[#4ea399]">
               {formatProbability(deficitProbability)}
             </span>
           </div>
         )}
 
         {/* Parametric Trigger and Payout Details */}
-        <div className="mt-5 grid grid-cols-2 gap-3 border-t border-gray-100 pt-4">
-          <div className="rounded-lg bg-gray-50 p-2.5">
-            <p className="text-[11px] font-medium uppercase text-gray-600">Rainfall Trigger</p>
-            <p className="mt-0.5 text-base font-bold text-gray-800">
+        <div className="mt-4 grid grid-cols-2 gap-3 rounded-2xl bg-slate-50 dark:bg-[#080B0F] p-3.5 shadow-xs">
+          <div>
+            <p className="text-[10px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400">Rainfall Trigger</p>
+            <p className="mt-0.5 text-base font-mono font-extrabold text-slate-900 dark:text-slate-100">
               {formatRainfall(option.triggerMm)}
             </p>
-            <p className="text-[10px] text-gray-600">Strictly below</p>
+            <p className="text-[9px] text-slate-500 dark:text-slate-400 font-mono">Strictly below (&lt;)</p>
           </div>
 
-          <div className="rounded-lg bg-gray-50 p-2.5">
-            <p className="text-[11px] font-medium uppercase text-gray-600">Fixed Payout</p>
-            <p className="mt-0.5 text-base font-bold text-blue-700">
+          <div>
+            <p className="text-[10px] font-mono font-bold uppercase text-slate-500 dark:text-slate-400">Guaranteed Payout</p>
+            <p className="mt-0.5 text-base font-mono font-extrabold text-amber-600 dark:text-amber-300">
               {formatRtt(option.payoutRtt.toString(), 0)}
             </p>
-            <p className="text-[10px] text-gray-600">Simulated test RTT</p>
+            <p className="text-[9px] text-amber-600/80 dark:text-amber-400/80 font-mono">Simulated RTT Tokens</p>
           </div>
         </div>
       </div>
 
       {/* Action CTA */}
-      <div className="mt-6 pt-3">
+      <div className="mt-5 pt-3.5 border-t border-slate-100 dark:border-slate-800/60">
         <Link
           href={enrollHref}
-          className={`block w-full rounded-lg py-2.5 text-center text-xs font-bold uppercase tracking-wider transition focus:outline-none focus:ring-2 ${
+          className={`block w-full rounded-xl py-2.5 text-center text-xs font-bold uppercase tracking-wider transition-all focus:outline-none ${
             option.isDemo
-              ? "bg-purple-700 text-white hover:bg-purple-800 focus:ring-purple-400"
+              ? "bg-purple-700 text-white hover:bg-purple-600 shadow-md"
               : recommended
-              ? "bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-400"
-              : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-400"
+              ? "bg-[#1a5b55] text-white shadow-md hover:shadow-lg hover:bg-[#22726b] hover:scale-[1.01]"
+              : "bg-slate-100 dark:bg-[#0D1218] text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white"
           }`}
         >
-          {recommended ? `Enroll Recommended #${option.optionId}` : `Select Option #${option.optionId}`}
+          {recommended ? `Enroll Recommended #${option.optionId}` : `Select Option #${option.optionId} \u2192`}
         </Link>
       </div>
     </div>

@@ -13,6 +13,8 @@
  * - Submits via contractHelpers.enrollPolicy (with mock adapter fallback)
  * - Full transaction lifecycle indicator: submitting, pending, confirmed with extracted policyId, failed (M3-E04, M3-E05)
  * - Strict adherence to RPD Version 2.0: user cannot customize triggers/duration/payout, test token disclaimer (M3-E07)
+ *
+ * Upgraded to InsurTech Bento Grid dark theme with Geist typography and glowing neon accents.
  */
 
 import React, { Suspense, useEffect, useState, useMemo } from "react";
@@ -33,6 +35,7 @@ import { ROUTES } from "@/lib/utils/constants";
 import StartDatePicker from "@/components/enrollment/StartDatePicker";
 import EnrollReview from "@/components/enrollment/EnrollReview";
 import TxStatus, { TxDetails } from "@/components/enrollment/TxStatus";
+import { CropTwinLeaves, CropSeedPacket } from "@/components/shared/CropIllustrations";
 
 function EnrollContent() {
   const searchParams = useSearchParams();
@@ -198,41 +201,50 @@ function EnrollContent() {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="mt-3 text-sm text-gray-500">Loading policy terms from catalogue...</p>
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#1a5b55] border-t-transparent" />
+          <p className="mt-4 text-sm font-mono text-slate-400">Loading policy terms from catalogue...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       {/* Page Heading & Breadcrumb */}
-      <div className="mb-6">
-        <nav className="mb-2 text-xs text-gray-400">
-          <Link href={ROUTES.DASHBOARD} className="hover:text-gray-600">
+      <div>
+        <nav className="mb-2 text-xs font-mono text-slate-500">
+          <Link href={ROUTES.DASHBOARD} className="hover:text-[#1a5b55] dark:hover:text-[#4ea399] transition-colors">
             Dashboard
           </Link>{" "}
           &gt;{" "}
-          <Link href={ROUTES.CATALOGUE} className="hover:text-gray-600">
+          <Link href={ROUTES.CATALOGUE} className="hover:text-[#1a5b55] dark:hover:text-[#4ea399] transition-colors">
             Catalogue
           </Link>{" "}
-          &gt; <span className="text-gray-600 font-semibold">Review &amp; Enroll</span>
+          &gt; <span className="text-slate-700 dark:text-slate-300 font-semibold">Review &amp; Enroll</span>
         </nav>
-        <h1 className="text-3xl font-bold text-gray-900">Review &amp; Enroll Policy</h1>
-        <p className="mt-1 text-sm text-gray-500">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1a5b55]/15 px-3 py-1 text-xs font-bold text-[#1a5b55] dark:text-[#4ea399] shadow-xs">
+            <CropSeedPacket className="h-4 w-4" />
+            <span>Parametric Smart Contract Enrollment</span>
+          </span>
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-light text-slate-900 dark:text-white flex items-center gap-2.5">
+          <CropTwinLeaves className="h-8 w-8" />
+          <span>Review &amp; Enroll Policy</span>
+        </h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Configure coverage start time, review terms and confirm your smart contract policy.
         </p>
       </div>
 
       {/* Option Selector Dropdown */}
-      <div className="mb-8 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <div className="floating-panel p-5 shadow-xl">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <label htmlFor="option-select" className="text-xs font-bold uppercase tracking-wider text-gray-600">
+            <label htmlFor="option-select" className="text-xs font-bold uppercase tracking-wider text-[#1a5b55] dark:text-[#4ea399]">
               Select Catalogue Option
             </label>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Choose from the 13 fixed contract options (Option 0 Demo or Options 1–12 Seasonal)
             </p>
           </div>
@@ -244,10 +256,10 @@ function EnrollContent() {
               setSelectedOptionId(Number(e.target.value));
               setTx({ step: "idle" });
             }}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="rounded-2xl bg-slate-100 dark:bg-[#070A0F] px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white shadow-inner focus:outline-none focus:ring-2 focus:ring-[#1a5b55]/50 border-none cursor-pointer"
           >
             {catalogue.map((opt) => (
-              <option key={opt.optionId} value={opt.optionId}>
+              <option key={opt.optionId} value={opt.optionId} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
                 {opt.isDemo ? "[DEMO 2H] " : `[${opt.riskLabel.toUpperCase()}] `}
                 Option #{opt.optionId} &mdash; Trigger: {opt.triggerMm} mm | Payout: {opt.payoutRtt} RTT
               </option>
@@ -257,14 +269,14 @@ function EnrollContent() {
       </div>
 
       {!selectedOption ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-red-800">
-          <p className="font-bold">Invalid Policy Option</p>
-          <p className="mt-1 text-xs text-red-600">
+        <div className="rounded-2xl bg-rose-500/15 p-8 text-center text-rose-700 dark:text-rose-300 shadow-xl">
+          <p className="font-bold text-base text-rose-700 dark:text-rose-200">Invalid Policy Option</p>
+          <p className="mt-1 text-xs text-rose-600 dark:text-rose-400">
             The requested policy option ID was not found in the smart contract catalogue.
           </p>
           <Link
             href={ROUTES.CATALOGUE}
-            className="mt-4 inline-block rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700"
+            className="mt-4 inline-block rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-500 transition-colors"
           >
             Browse Catalogue &rarr;
           </Link>
@@ -273,15 +285,15 @@ function EnrollContent() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
           {/* Left Column: Step 1 - Start Date Configuration */}
           <div className="space-y-6 lg:col-span-6">
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="border-b border-gray-100 pb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+            <div className="floating-panel p-6 shadow-xl">
+              <div className="border-b border-slate-100 dark:border-slate-800/60 pb-3.5">
+                <span className="inline-block rounded-full bg-cyan-500/15 px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400 shadow-sm">
                   Step 1 of 2
                 </span>
-                <h2 className="mt-1 text-base font-bold text-gray-900">
+                <h2 className="mt-2 text-base font-extrabold text-slate-900 dark:text-white">
                   Select Coverage Start Date
                 </h2>
-                <p className="mt-0.5 text-xs text-gray-500">
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                   {selectedOption.isDemo
                     ? "Option 0 requires a full-hour start time strictly in the future."
                     : "Standard seasonal policies start at 00:00:00 UTC on whole-day boundaries."}
@@ -303,33 +315,35 @@ function EnrollContent() {
             </div>
 
             {/* Profile Check Card */}
-            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-600">
+            <div className="floating-card p-5 shadow-lg">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Farmer Profile Status
               </h3>
               {profile ? (
-                <div className="mt-2 text-xs text-gray-600">
+                <div className="mt-2 text-xs text-slate-600 dark:text-slate-300">
                   <p>
-                    <span className="font-semibold text-gray-900">Farm Location:</span>{" "}
-                    {profile.latitude.toFixed(4)}°, {profile.longitude.toFixed(4)}°
+                    <span className="font-semibold text-slate-500 dark:text-slate-400">Farm Location:</span>{" "}
+                    <span className="font-mono font-bold text-slate-900 dark:text-white">{profile.latitude.toFixed(4)}°, {profile.longitude.toFixed(4)}°</span>
                   </p>
                   <p className="mt-1">
-                    <span className="font-semibold text-gray-900">Crop:</span> {profile.crop} (Sown:{" "}
-                    {profile.sowingDate})
+                    <span className="font-semibold text-slate-500 dark:text-slate-400">Crop:</span>{" "}
+                    <span className="capitalize text-slate-900 dark:text-white font-bold">{profile.crop}</span>{" "}
+                    <span className="text-slate-500 font-mono">(Sown: {profile.sowingDate})</span>
                   </p>
-                  <p className="mt-1 text-emerald-600 font-medium">
-                    &#10003; Profile is ready for on-chain submission
+                  <p className="mt-2 text-[#1a5b55] dark:text-[#4ea399] font-bold flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-[#1a5b55] dark:bg-[#4ea399]" />
+                    Profile is ready for on-chain submission
                   </p>
                 </div>
               ) : (
-                <div className="mt-2 text-xs text-amber-700">
-                  <p className="font-semibold">Profile missing for connected wallet.</p>
-                  <p className="mt-0.5">
+                <div className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+                  <p className="font-bold">Profile missing for connected wallet.</p>
+                  <p className="mt-0.5 text-amber-700/80 dark:text-amber-200/80">
                     Please configure your farm coordinates and crop before enrolling.
                   </p>
                   <Link
                     href={ROUTES.PROFILE}
-                    className="mt-2 inline-block font-semibold text-blue-600 underline"
+                    className="mt-2.5 inline-block font-bold text-[#1a5b55] dark:text-[#4ea399] hover:underline"
                   >
                     Go to Profile Setup &rarr;
                   </Link>
@@ -343,15 +357,15 @@ function EnrollContent() {
 
           {/* Right Column: Step 2 - Review Summary & Confirm */}
           <div className="space-y-6 lg:col-span-6">
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="border-b border-gray-100 pb-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+            <div className="floating-panel p-6 shadow-xl">
+              <div className="border-b border-slate-100 dark:border-slate-800/60 pb-3.5">
+                <span className="inline-block rounded-full bg-[#1a5b55]/15 px-3 py-0.5 text-xs font-bold uppercase tracking-wider text-[#1a5b55] dark:text-[#4ea399] shadow-xs">
                   Step 2 of 2
                 </span>
-                <h2 className="mt-1 text-base font-bold text-gray-900">
+                <h2 className="mt-2 text-base font-extrabold text-slate-900 dark:text-white">
                   Enrollment Review &amp; Confirmation
                 </h2>
-                <p className="mt-0.5 text-xs text-gray-500">
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                   Verify terms, coverage window preview, and submit transaction to the smart contract.
                 </p>
               </div>
@@ -383,8 +397,8 @@ export default function EnrollPage() {
       fallback={
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-            <p className="mt-3 text-sm text-gray-500">Loading enrollment review...</p>
+            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#1a5b55] border-t-transparent" />
+            <p className="mt-4 text-sm font-mono text-slate-400">Loading enrollment review...</p>
           </div>
         </div>
       }

@@ -1,26 +1,267 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..700;1,100..700&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light Mode (White: #FFFFFF) */
+  --background: #FFFFFF;
+  --foreground: #0F172A;
+  --surface: #FFFFFF;
+  --surface-secondary: #F8FAFC;
+  --brand-green: #1a5b55;
+  --brand-green-hover: #22726b;
+  --brand-green-light: #e8f3f2;
+  --accent-amber: #D97706;
+  --accent-cyan: #0284C7;
+  color-scheme: light;
+}
+
+.dark {
+  /* Dark Mode (Black: #000000) */
+  --background: #000000;
+  --foreground: #F8FAFC;
+  --surface: #0B0F14;
+  --surface-secondary: #121820;
+  --brand-green: #1a5b55;
+  --brand-green-hover: #22726b;
+  --brand-green-light: rgba(26, 91, 85, 0.15);
+  --accent-amber: #F59E0B;
+  --accent-cyan: #38BDF8;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-montserrat), "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-montserrat), "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Universal Montserrat Font Enforcement (Every element, button, input, badge, number) */
+*,
+*::before,
+*::after,
+html,
+body,
+input,
+button,
+select,
+textarea,
+optgroup,
+option,
+label,
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-montserrat), "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* Thin Montserrat Typography Style (Weight 300, Not Bold) */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-montserrat), "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 300 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Thin, elegant headings */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 300 !important;
+  letter-spacing: -0.015em;
+}
+
+/* Tame bold classes across all pages to thin / light (300) */
+.font-black,
+.font-extrabold,
+.font-bold,
+.font-semibold {
+  font-weight: 300 !important;
+}
+
+/* Regular (400) for subtle emphasis so text remains legible and elegant without bold chunkiness */
+strong,
+b,
+.font-medium,
+button,
+input,
+select,
+.btn-brand {
+  font-weight: 400 !important;
+}
+
+/* Date picker calendar icon inversion in dark mode */
+.dark input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* Background Subtle Grid Pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
+.dark .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* ── Floating Architecture (Clean, Borderless, No Neon Glow) ──────────────── */
+
+/* Floating Panels (Main container cards) */
+.floating-panel,
+.glass-panel {
+  border: none !important;
+  border-radius: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Light Mode: Diffuse, deep natural shadows */
+.floating-panel,
+.glass-panel {
+  background: #FFFFFF;
+  box-shadow: 
+    0 10px 30px -8px rgba(15, 23, 42, 0.08),
+    0 20px 45px -12px rgba(15, 23, 42, 0.04);
+}
+
+/* Dark Mode: Deep obsidian floating surfaces with pure neutral shadow (No color glow) */
+.dark .floating-panel,
+.dark .glass-panel {
+  background: #0B0F14;
+  box-shadow: 
+    0 15px 40px -10px rgba(0, 0, 0, 0.95),
+    0 30px 60px -15px rgba(0, 0, 0, 0.85);
+}
+
+/* Floating Cards (Interactive sub-cards) */
+.floating-card,
+.glass-card {
+  border: none !important;
+  border-radius: 1.25rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.floating-card,
+.glass-card {
+  background: #FFFFFF;
+  box-shadow: 0 4px 18px -4px rgba(15, 23, 42, 0.06);
+}
+
+.floating-card:hover,
+.glass-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px -6px rgba(15, 23, 42, 0.12);
+}
+
+.dark .floating-card,
+.dark .glass-card {
+  background: #0D1218;
+  box-shadow: 0 4px 18px -4px rgba(0, 0, 0, 0.85);
+}
+
+.dark .floating-card:hover,
+.dark .glass-card:hover {
+  transform: translateY(-3px);
+  background: #111720;
+  box-shadow: 0 14px 32px -6px rgba(0, 0, 0, 0.95);
+}
+
+/* Floating Pill Badges - clean matte, no colored glow */
+.floating-pill {
+  border: none !important;
+  border-radius: 9999px;
+  background: rgba(26, 91, 85, 0.1);
+  color: #1a5b55;
+  font-weight: 600;
+}
+
+.dark .floating-pill {
+  background: rgba(26, 91, 85, 0.22);
+  color: #4ea399;
+}
+
+/* Primary Brand Button Styling - clean matte, solid */
+.btn-brand {
+  background-color: #1a5b55;
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-brand:hover {
+  background-color: #22726b;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* Floating Navbar */
+.floating-navbar {
+  border: none !important;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 20px -5px rgba(15, 23, 42, 0.06);
+}
+
+.dark .floating-navbar {
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.9);
+}
+
+/* Telemetry Flow Pulse */
+@keyframes telemetryPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.animate-telemetry-pulse {
+  animation: telemetryPulse 3s ease-in-out infinite;
+}
+
+/* Custom Smooth Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(26, 91, 85, 0.3);
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(26, 91, 85, 0.5);
+}
+
+/* Suppress Next.js 15 devtools overlay and floating indicators */
+nextjs-portal,
+[data-nextjs-dev-tools-button],
+[data-nextjs-toast],
+#nextjs-dev-tools-header,
+div:has(> button[data-nextjs-dev-tools-button]) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }

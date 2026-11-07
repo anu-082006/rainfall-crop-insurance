@@ -3,6 +3,7 @@
 /**
  * LoadingSpinner.tsx
  * Reusable loading state component (M3-NF01: every async action has a loading state).
+ * Upgraded to InsurTech dark palette with emerald glowing spinner and Geist typography.
  */
 
 import React from "react";
@@ -26,7 +27,7 @@ const SIZE_CLASSES = {
 const TEXT_SIZE_CLASSES = {
   sm: "text-xs",
   md: "text-sm",
-  lg: "text-base",
+  lg: "text-base font-medium",
 };
 
 export default function LoadingSpinner({
@@ -39,30 +40,30 @@ export default function LoadingSpinner({
     <div
       role="status"
       aria-label={message}
-      className={`flex items-center gap-3 text-gray-500 ${centered ? "justify-center" : ""} ${className}`}
+      className={`flex items-center gap-3 text-slate-400 ${centered ? "justify-center" : ""} ${className}`}
     >
       <svg
-        className={`animate-spin flex-shrink-0 ${SIZE_CLASSES[size]}`}
+        className={`animate-spin flex-shrink-0 text-emerald-400 ${SIZE_CLASSES[size]}`}
         viewBox="0 0 24 24"
         fill="none"
         aria-hidden
       >
         <circle
-          className="opacity-25"
+          className="opacity-20 text-slate-600"
           cx="12"
           cy="12"
           r="10"
           stroke="currentColor"
-          strokeWidth="4"
+          strokeWidth="3.5"
         />
         <path
-          className="opacity-75"
+          className="opacity-90"
           fill="currentColor"
           d="M4 12a8 8 0 018-8v8H4z"
         />
       </svg>
       {message && (
-        <span className={TEXT_SIZE_CLASSES[size]}>{message}</span>
+        <span className={`${TEXT_SIZE_CLASSES[size]} tracking-wide text-slate-300 font-mono`}>{message}</span>
       )}
     </div>
   );

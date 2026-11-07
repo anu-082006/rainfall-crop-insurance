@@ -11,6 +11,8 @@
  * - ClaimButton with ownership check, disabled reason explanations, and full claim transaction lifecycle (M3-R03–R06, M3-R09).
  * - Refreshes wallet RTT token balance upon confirmed claim settlement.
  * - Appropriate loading, empty/not-found, and error states.
+ *
+ * Upgraded to InsurTech dark Bento Grid design with Geist typography and neon telemetry accents.
  */
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
@@ -35,6 +37,7 @@ import StatusBadge from "@/components/shared/StatusBadge";
 import RainfallReportCard from "@/components/policies/RainfallReportCard";
 import ResultCard from "@/components/policies/ResultCard";
 import ClaimButton from "@/components/policies/ClaimButton";
+import { CropSproutMascot, ProtectedSproutUmbrella } from "@/components/shared/CropIllustrations";
 
 export default function PolicyDetailPage() {
   const params = useParams();
@@ -101,12 +104,12 @@ export default function PolicyDetailPage() {
   // 1. Loading State
   if (loading) {
     return (
-      <div className="mx-auto max-w-5xl px-4 py-16 text-center">
-        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-        <h2 className="mt-4 text-base font-semibold text-gray-800">
+      <div className="mx-auto max-w-5xl px-4 py-24 text-center">
+        <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-[#1a5b55] border-t-transparent" />
+        <h2 className="mt-4 text-base font-semibold text-slate-900 dark:text-white">
           Loading Policy #{rawId}…
         </h2>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-mono">
           Querying on-chain state and oracle data…
         </p>
       </div>
@@ -116,15 +119,15 @@ export default function PolicyDetailPage() {
   // 2. Error / Invalid ID State
   if (isNaN(policyId)) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-8">
-          <h2 className="text-lg font-bold text-red-900">Invalid Policy ID</h2>
-          <p className="mt-2 text-sm text-red-700">
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <div className="rounded-3xl floating-panel p-8 text-center bg-rose-50/50 dark:bg-rose-950/20 shadow-xl">
+          <h2 className="text-lg font-bold text-rose-800 dark:text-rose-200">Invalid Policy ID</h2>
+          <p className="mt-2 text-sm text-rose-700 dark:text-rose-300">
             The URL contains an invalid policy identifier.
           </p>
           <Link
             href={ROUTES.DASHBOARD}
-            className="mt-5 inline-block rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700"
+            className="mt-5 inline-block rounded-xl bg-rose-600 px-5 py-2.5 text-xs font-semibold text-white hover:bg-rose-500 transition-colors shadow-md"
           >
             &larr; Back to Dashboard
           </Link>
@@ -136,38 +139,26 @@ export default function PolicyDetailPage() {
   // 3. Not Found State
   if (!policy || !status) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-12 text-center">
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={1.5}
-              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <h2 className="mt-3 text-lg font-bold text-gray-900">
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <div className="floating-panel p-8 shadow-xl">
+          <ProtectedSproutUmbrella className="mx-auto h-16 w-16 mb-2" />
+          <h2 className="mt-3 text-lg font-bold text-slate-900 dark:text-white">
             Policy #{policyId} Not Found
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {error ||
               "No policy with this ID could be found for your account on the smart contract."}
           </p>
           <div className="mt-6 flex justify-center gap-3">
             <button
               onClick={() => router.back()}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              className="rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               Go Back
             </button>
             <Link
               href={ROUTES.DASHBOARD}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+              className="rounded-xl bg-[#1a5b55] hover:bg-[#22726b] px-4 py-2 text-xs font-bold text-white shadow-md transition-all"
             >
               Go to Dashboard
             </Link>
@@ -190,40 +181,41 @@ export default function PolicyDetailPage() {
   const durationSeconds = policy.endTime - policy.startTime;
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       {/* ── Breadcrumb & Navigation ────────────────────────────────────────── */}
-      <nav aria-label="Breadcrumb" className="mb-4 text-xs text-gray-500">
-        <Link href={ROUTES.DASHBOARD} className="hover:text-gray-700">
+      <nav aria-label="Breadcrumb" className="text-xs font-mono text-slate-500">
+        <Link href={ROUTES.DASHBOARD} className="hover:text-[#1a5b55] dark:hover:text-[#4ea399] transition-colors">
           Dashboard
         </Link>{" "}
         &gt;{" "}
-        <span className="font-semibold text-gray-800">
+        <span className="font-semibold text-slate-700 dark:text-slate-300">
           Policy #{policy.policyId}
         </span>
       </nav>
 
       {/* ── Policy Header & Status ─────────────────────────────────────────── */}
-      <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <div className="floating-panel p-6 shadow-xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex flex-wrap items-center gap-2.5">
-              <span className="font-mono text-sm font-bold text-gray-600">
+              <CropSproutMascot className="h-6 w-6" />
+              <span className="font-mono text-sm font-bold text-slate-600 dark:text-slate-300">
                 Policy #{policy.policyId}
               </span>
               <StatusBadge code={status.code} label={status.label} size="lg" />
               {policy.optionId === 0 && (
-                <span className="rounded-full bg-purple-700 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                <span className="rounded-full bg-purple-500/15 px-2.5 py-0.5 text-[11px] font-bold text-purple-700 dark:text-purple-300 shadow-sm">
                   DEMO (2 HOURS)
                 </span>
               )}
               {matchedOption && (
                 <span
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-sm ${
                     matchedOption.riskLabel === "Severe"
-                      ? "bg-red-100 text-red-800"
+                      ? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
                       : matchedOption.riskLabel === "Moderate"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-blue-100 text-blue-800"
+                      ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                      : "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300"
                   }`}
                 >
                   {matchedOption.riskLabel}
@@ -231,78 +223,78 @@ export default function PolicyDetailPage() {
               )}
             </div>
 
-            <h1 className="mt-2 text-2xl font-black text-gray-900">
+            <h1 className="mt-2 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
               {matchedOption
                 ? `Option #${policy.optionId}: ${matchedOption.riskLabel} Risk (${formatDuration(durationSeconds)})`
                 : `Policy #${policy.policyId} Details`}
             </h1>
 
-            <p className="mt-1 text-xs text-gray-600">{status.description}</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{status.description}</p>
           </div>
 
           {/* Ownership Pill */}
-          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs sm:text-right">
-            <span className="text-gray-500">Policy Owner</span>
-            <p className="font-mono font-semibold text-gray-800">
+          <div className="rounded-2xl bg-slate-50 dark:bg-[#0D1218] p-4 text-xs sm:text-right shadow-sm">
+            <span className="text-slate-500 dark:text-slate-400">Policy Owner</span>
+            <p className="font-mono font-bold text-slate-900 dark:text-white">
               {shortenAddress(policy.owner, 6)}
             </p>
             {isOwner ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1a5b55] dark:text-[#4ea399] mt-0.5">
                 &#10003; Connected Wallet (Owner)
               </span>
             ) : (
-              <span className="text-[11px] text-gray-500">Read-only view</span>
+              <span className="text-[11px] text-slate-500 mt-0.5">Read-only view</span>
             )}
           </div>
         </div>
 
         {/* ── Fixed Terms Metric Strip ─────────────────────────────────────── */}
-        <div className="mt-6 grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 sm:grid-cols-4">
-          <div>
-            <span className="text-xs text-gray-500 font-medium">Trigger Threshold</span>
-            <p className="mt-0.5 text-base font-bold text-gray-900">
+        <div className="mt-6 grid grid-cols-2 gap-3 border-t border-slate-100 dark:border-slate-800/60 pt-5 sm:grid-cols-4">
+          <div className="rounded-2xl bg-slate-50 dark:bg-[#0D1218] p-4 shadow-sm">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Trigger Threshold</span>
+            <p className="mt-0.5 text-base font-bold text-cyan-600 dark:text-cyan-400 font-mono">
               {formatRainfall(policy.thresholdMm)}
             </p>
-            <p className="text-[10px] text-gray-600">Fixed deficit trigger</p>
+            <p className="text-[10px] text-slate-500 font-mono">Fixed deficit trigger</p>
           </div>
 
-          <div>
-            <span className="text-xs text-gray-500 font-medium">Guaranteed Payout</span>
-            <p className="mt-0.5 text-base font-bold text-emerald-600">
+          <div className="rounded-2xl bg-slate-50 dark:bg-[#0D1218] p-4 shadow-sm">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Guaranteed Payout</span>
+            <p className="mt-0.5 text-base font-bold text-amber-600 dark:text-amber-400 font-mono">
               {payoutFormatted}
             </p>
-            <p className="text-[10px] text-gray-600">Simulated test RTT</p>
+            <p className="text-[10px] text-slate-500 font-mono">Simulated test RTT</p>
           </div>
 
-          <div>
-            <span className="text-xs text-gray-500 font-medium">Duration</span>
-            <p className="mt-0.5 text-base font-bold text-gray-900">
+          <div className="rounded-2xl bg-slate-50 dark:bg-[#0D1218] p-4 shadow-sm">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Duration</span>
+            <p className="mt-0.5 text-base font-bold text-slate-900 dark:text-white font-mono">
               {formatDuration(durationSeconds)}
             </p>
-            <p className="text-[10px] text-gray-600">On-chain window</p>
+            <p className="text-[10px] text-slate-500 font-mono">On-chain window</p>
           </div>
 
-          <div>
-            <span className="text-xs text-gray-500 font-medium">Farm Coordinates</span>
-            <p className="mt-0.5 font-mono text-xs font-bold text-gray-900">
+          <div className="rounded-2xl bg-slate-50 dark:bg-[#0D1218] p-4 shadow-sm">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">Farm Coordinates</span>
+            <p className="mt-0.5 font-mono text-xs font-bold text-slate-900 dark:text-white">
               {latDeg}°, {lonDeg}°
             </p>
-            <p className="text-[10px] text-gray-600 font-mono">
+            <p className="text-[10px] text-slate-500 font-mono">
               ({policy.latitudeE6}, {policy.longitudeE6} E6)
             </p>
           </div>
         </div>
 
         {/* Coverage Window Dates */}
-        <div className="mt-4 rounded-lg bg-gray-50 p-3 text-xs text-gray-600">
+        <div className="mt-4 rounded-2xl bg-slate-50 dark:bg-[#0D1218] p-4 text-xs text-slate-700 dark:text-slate-300 shadow-sm">
           <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="font-semibold text-gray-800">Coverage Window:</span>{" "}
-              <span className="font-mono text-gray-700">{formatUtcDateTime(policy.startTime)}</span>
+              <span className="font-semibold text-slate-500 dark:text-slate-400">Coverage Window:</span>{" "}
+              <span className="font-mono font-bold text-slate-900 dark:text-white">{formatUtcDateTime(policy.startTime)}</span>
               {" "}&rarr;{" "}
-              <span className="font-mono text-gray-700">{formatUtcDateTime(policy.endTime)}</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-white">{formatUtcDateTime(policy.endTime)}</span>
             </div>
-            <div className="text-[11px] text-gray-600">
+            <div className="text-[11px] text-slate-500 font-mono">
               (Local: {formatUnixTimestamp(policy.startTime)} &ndash; {formatUnixTimestamp(policy.endTime)})
             </div>
           </div>
@@ -311,7 +303,7 @@ export default function PolicyDetailPage() {
 
       {/* ── Main Detail Grid: Rainfall Report & Outcomes ───────────────────── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Left Column (8 cols): Rainfall Report & Result Cards */}
+        {/* Left Column (7 cols): Rainfall Report & Result Cards */}
         <div className="space-y-6 lg:col-span-7">
           {/* Section 1: Rainfall Report (M3-R01, M3-R02, M3-R07) */}
           <RainfallReportCard policy={policy} status={status} />
@@ -323,9 +315,9 @@ export default function PolicyDetailPage() {
         {/* Right Column (5 cols): Claim Action & Notice Cards */}
         <div className="space-y-6 lg:col-span-5">
           {/* Section 3: Claim Execution Card (M3-R03 to M3-R06, M3-R09) */}
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-            <h3 className="text-base font-bold text-gray-900">Claim Insurance Payout</h3>
-            <p className="text-xs text-gray-500 mb-4">
+          <div className="floating-panel p-6 shadow-xl">
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Claim Insurance Payout</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 mt-0.5">
               Payouts can be claimed once the weather oracle submits a verified deficit report.
             </p>
 
@@ -340,9 +332,9 @@ export default function PolicyDetailPage() {
           </div>
 
           {/* Explanatory Disclaimers */}
-          <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-xs text-yellow-800 space-y-2">
-            <p className="font-bold">Test Environment Disclaimer (M3-NF07 / M3-E07)</p>
-            <p className="text-yellow-700">
+          <div className="rounded-2xl bg-amber-500/10 p-4 text-xs text-amber-800 dark:text-amber-200 space-y-2 shadow-sm">
+            <p className="font-bold text-amber-700 dark:text-amber-300">Test Environment Disclaimer (M3-NF07 / M3-E07)</p>
+            <p className="text-amber-700/80 dark:text-amber-200/80 leading-relaxed">
               RTT (Rainfall Test Tokens) are simulated tokens with no monetary value. No real funds,
               premiums, or operational indemnities are involved in this prototype.
             </p>
@@ -350,9 +342,9 @@ export default function PolicyDetailPage() {
 
           {/* Mock disclosure if active */}
           {(MOCK_MODE || !CONTRACT_ADDRESS) && (
-            <div className="rounded-xl border border-purple-200 bg-purple-50 p-4 text-xs text-purple-900">
-              <p className="font-bold">Simulated Contract Adapter Active</p>
-              <p className="mt-1 text-purple-700">
+            <div className="rounded-2xl bg-purple-500/10 p-4 text-xs text-purple-800 dark:text-purple-200 shadow-sm">
+              <p className="font-bold text-purple-700 dark:text-purple-300">Simulated Contract Adapter Active</p>
+              <p className="mt-1 text-purple-700/80 dark:text-purple-200/80 leading-relaxed">
                 Connected in mock mode. State updates and transactions are handled by the local mock contract
                 adapter in accordance with RPD Appendix A.3.
               </p>

@@ -10,6 +10,8 @@
  * - Direct navigation link to policy detail page (/policies/[id])
  * - Filter by event type (All, Enrollments, Reports, Claims) and search filter
  * - Clearly distinguishes mock events from verified on-chain transactions
+ *
+ * Upgraded to Cruip Mosaic / Geist InsurTech design with tabular monospace numbers and glowing accents.
  */
 
 import React, { useState, useMemo } from "react";
@@ -60,10 +62,10 @@ export default function HistoryTable({ events }: HistoryTableProps) {
   return (
     <div className="space-y-4">
       {/* ── Filters and Search Strip ────────────────────────────────────── */}
-      <div className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 floating-panel p-4 shadow-lg sm:flex-row sm:items-center sm:justify-between">
         {/* Type Filter Buttons */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-semibold uppercase text-gray-400 mr-1">Event:</span>
+          <span className="text-xs font-semibold uppercase text-slate-500 mr-1 font-mono">Event:</span>
           {[
             { id: "ALL", label: "All Events" },
             { id: "ENROLLMENT", label: "Enrollments" },
@@ -74,10 +76,10 @@ export default function HistoryTable({ events }: HistoryTableProps) {
               key={tab.id}
               type="button"
               onClick={() => setFilterType(tab.id)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                 filterType === tab.id
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-[#1a5b55] text-white shadow-md"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {tab.label}
@@ -86,19 +88,19 @@ export default function HistoryTable({ events }: HistoryTableProps) {
         </div>
 
         {/* Search Bar */}
-        <div className="relative min-w-[220px]">
+        <div className="relative min-w-[240px]">
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search Policy ID or Tx..."
-            className="w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-800 placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-2xl bg-slate-100 dark:bg-[#070A0F] px-4 py-2 text-xs font-mono text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 outline-none focus:ring-2 focus:ring-[#1a5b55]/50 shadow-inner border-none"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1.5 text-xs font-bold text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
             >
               ✕
             </button>
@@ -107,9 +109,9 @@ export default function HistoryTable({ events }: HistoryTableProps) {
       </div>
 
       {/* ── Results Summary ────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between text-xs text-gray-500 px-1">
+      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1 font-mono">
         <span>
-          Showing <strong>{filteredEvents.length}</strong> of {events.length} transactions
+          Showing <strong className="text-slate-900 dark:text-white">{filteredEvents.length}</strong> of {events.length} transactions
         </span>
         {(filterType !== "ALL" || searchQuery !== "") && (
           <button
@@ -118,7 +120,7 @@ export default function HistoryTable({ events }: HistoryTableProps) {
               setFilterType("ALL");
               setSearchQuery("");
             }}
-            className="text-blue-600 hover:underline font-medium"
+            className="text-[#1a5b55] dark:text-[#4ea399] hover:underline font-bold cursor-pointer"
           >
             Reset Filters
           </button>
@@ -127,10 +129,10 @@ export default function HistoryTable({ events }: HistoryTableProps) {
 
       {/* ── Transactions Table (Desktop & Mobile) ──────────────────────── */}
       {filteredEvents.length > 0 ? (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden floating-panel shadow-xl">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-left text-xs">
-              <thead className="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+            <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800/60 text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-black/60 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-mono">
                 <tr>
                   <th scope="col" className="px-4 py-3.5">
                     Event Type
@@ -152,37 +154,37 @@ export default function HistoryTable({ events }: HistoryTableProps) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 bg-white">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/40 bg-transparent">
                 {filteredEvents.map((evt) => {
                   const isCopied = copiedHash === evt.transactionHash;
 
                   // Event badge styling
-                  let badgeClass = "bg-gray-100 text-gray-800 border-gray-200";
+                  let badgeClass = "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300";
                   let eventLabel: string = evt.eventName;
 
                   if (evt.eventType === "ENROLLMENT") {
-                    badgeClass = "bg-blue-100 text-blue-800 border-blue-200";
+                    badgeClass = "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300";
                     eventLabel = "Policy Enrolled";
                   } else if (evt.eventType === "REPORT") {
-                    badgeClass = "bg-purple-100 text-purple-800 border-purple-200";
+                    badgeClass = "bg-purple-500/15 text-purple-700 dark:text-purple-300";
                     eventLabel = "Oracle Report";
                   } else if (evt.eventType === "CLAIM") {
-                    badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                    badgeClass = "bg-[#1a5b55]/15 text-[#1a5b55] dark:text-[#4ea399]";
                     eventLabel = "Claim Paid";
                   }
 
                   return (
-                    <tr key={evt.id} className="hover:bg-gray-50/70 transition">
+                    <tr key={evt.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                       {/* Event Type Badge */}
                       <td className="whitespace-nowrap px-4 py-3.5 font-medium">
                         <div className="flex items-center gap-1.5">
                           <span
-                            className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeClass}`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm ${badgeClass}`}
                           >
                             {eventLabel}
                           </span>
                           {evt.isMock && (
-                            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold text-gray-500">
+                            <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[9px] font-bold text-purple-700 dark:text-purple-300">
                               MOCK
                             </span>
                           )}
@@ -193,25 +195,25 @@ export default function HistoryTable({ events }: HistoryTableProps) {
                       <td className="whitespace-nowrap px-4 py-3.5 font-mono">
                         <Link
                           href={ROUTES.POLICY(evt.policyId)}
-                          className="font-bold text-blue-600 hover:text-blue-800 hover:underline"
+                          className="font-bold text-[#1a5b55] dark:text-[#4ea399] hover:underline transition-colors"
                         >
                           Policy #{evt.policyId} &rarr;
                         </Link>
                       </td>
 
                       {/* Details / Summary */}
-                      <td className="px-4 py-3.5 text-gray-700">
+                      <td className="px-4 py-3.5 text-slate-700 dark:text-slate-300">
                         <div className="max-w-md">
-                          <p className="font-medium text-gray-900">{evt.summary}</p>
-                          <div className="mt-0.5 flex flex-wrap gap-2 text-[11px] text-gray-500">
+                          <p className="font-semibold text-slate-900 dark:text-white">{evt.summary}</p>
+                          <div className="mt-0.5 flex flex-wrap gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-mono">
                             {evt.details.optionId !== undefined && (
                               <span>Option #{evt.details.optionId}</span>
                             )}
                             {evt.details.rainfallMm !== undefined && (
-                              <span>Precipitation: {evt.details.rainfallMm} mm</span>
+                              <span className="text-cyan-600 dark:text-cyan-400 font-semibold">Precipitation: {evt.details.rainfallMm} mm</span>
                             )}
                             {evt.details.amountRtt && (
-                              <span className="font-semibold text-emerald-700">
+                              <span className="font-bold text-amber-600 dark:text-amber-400">
                                 Payout: {evt.details.amountRtt} RTT
                               </span>
                             )}
@@ -220,12 +222,12 @@ export default function HistoryTable({ events }: HistoryTableProps) {
                       </td>
 
                       {/* Block Number */}
-                      <td className="whitespace-nowrap px-4 py-3.5 font-mono text-gray-500">
+                      <td className="whitespace-nowrap px-4 py-3.5 font-mono text-slate-500 dark:text-slate-400">
                         #{evt.blockNumber}
                       </td>
 
                       {/* Timestamp */}
-                      <td className="whitespace-nowrap px-4 py-3.5 text-gray-600">
+                      <td className="whitespace-nowrap px-4 py-3.5 font-mono text-xs text-slate-500 dark:text-slate-400">
                         {formatUnixTimestamp(evt.timestamp)}
                       </td>
 
@@ -234,7 +236,7 @@ export default function HistoryTable({ events }: HistoryTableProps) {
                         <div className="flex items-center gap-2">
                           <span
                             title={evt.transactionHash}
-                            className="text-gray-600"
+                            className="text-slate-500 dark:text-slate-400 text-xs"
                           >
                             {shortenTxHash(evt.transactionHash, 5)}
                           </span>
@@ -242,10 +244,10 @@ export default function HistoryTable({ events }: HistoryTableProps) {
                           <button
                             type="button"
                             onClick={() => handleCopyHash(evt.transactionHash)}
-                            className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition ${
+                            className={`rounded-lg px-2 py-0.5 text-[10px] font-bold transition-all cursor-pointer ${
                               isCopied
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                ? "bg-[#1a5b55] text-white"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
                             }`}
                             title="Copy full transaction hash to clipboard"
                           >
@@ -262,9 +264,9 @@ export default function HistoryTable({ events }: HistoryTableProps) {
         </div>
       ) : (
         /* Empty Filter State */
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center text-gray-500 shadow-sm">
-          <p className="text-sm font-semibold text-gray-700">No transactions match your filter</p>
-          <p className="mt-1 text-xs text-gray-400">
+        <div className="floating-panel p-12 text-center text-slate-500 dark:text-slate-400 shadow-xl">
+          <p className="text-sm font-bold text-slate-900 dark:text-white">No transactions match your filter</p>
+          <p className="mt-1 text-xs text-slate-500">
             Try switching event types or clearing your search term.
           </p>
           <button
@@ -273,7 +275,7 @@ export default function HistoryTable({ events }: HistoryTableProps) {
               setFilterType("ALL");
               setSearchQuery("");
             }}
-            className="mt-4 rounded-lg bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+            className="mt-4 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
           >
             Clear Filters
           </button>

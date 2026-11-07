@@ -8,6 +8,8 @@
  * - Duration filter (All, 2 hours, 30 days, 60 days, 90 days, 120 days)
  * - Renders grid of OptionCard components
  * - Clear notice that policy terms are fixed by the contract and cannot be edited
+ *
+ * Upgraded to borderless shadowy floating layout with Primary Green #1a5b55.
  */
 
 import React, { useMemo, useState } from "react";
@@ -46,35 +48,35 @@ export default function CatalogueTable({
 
   return (
     <div className="space-y-6">
-      {/* ── Fixed Terms Policy Notice ──────────────────────────────── */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4 text-xs sm:text-sm text-gray-600 shadow-sm flex items-start gap-3">
-        <svg className="h-5 w-5 flex-shrink-0 text-blue-600 mt-0.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-        </svg>
+      {/* ── Fixed Terms Policy Notice ─────────────────────────────────── */}
+      <div className="rounded-3xl floating-panel p-5 sm:p-6 flex items-start gap-3.5">
+        <div className="text-[#1a5b55] dark:text-[#4ea399] flex-shrink-0 mt-0.5">
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+          </svg>
+        </div>
         <div>
-          <p className="font-semibold text-gray-900">Fixed Contract Terms</p>
-          <p className="mt-0.5 text-gray-500">
-            All policy parameters (duration, trigger threshold, and payout) are predefined on-chain in the
-            smart contract catalogue. Farmers select an established policy option and specify a future start date;
-            terms cannot be manually altered.
+          <p className="font-extrabold text-slate-900 dark:text-white">Deterministic Smart Contract Catalogue</p>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            All policy durations, triggers, and guaranteed payouts are pre-committed on-chain in <code className="text-[#1a5b55] dark:text-[#4ea399] font-mono text-[11px] font-bold">CropInsurance.sol</code>. Select any catalogue option and specify your future start date.
           </p>
         </div>
       </div>
 
-      {/* ── Filters Bar ────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm space-y-4 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
+      {/* ── Filters Bar (Borderless Floating Strip) ──────────────────── */}
+      <div className="rounded-3xl floating-panel p-4 sm:p-5 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
         {/* Risk Filter */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-xs font-semibold text-gray-400 uppercase mr-1">Risk:</span>
+          <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 uppercase mr-1">Risk Tier:</span>
           {RISK_FILTERS.map((risk) => (
             <button
               key={risk}
               type="button"
               onClick={() => setSelectedRisk(risk)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
                 selectedRisk === risk
-                  ? "bg-blue-600 text-white shadow-sm"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-[#1a5b55] text-white shadow-md hover:bg-[#22726b]"
+                  : "bg-slate-100 dark:bg-[#0D1218] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800"
               }`}
             >
               {risk}
@@ -84,17 +86,17 @@ export default function CatalogueTable({
 
         {/* Duration Filter */}
         <div className="flex items-center gap-2">
-          <label htmlFor="duration-filter" className="text-xs font-semibold text-gray-400 uppercase">
+          <label htmlFor="duration-filter" className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 uppercase">
             Duration:
           </label>
           <select
             id="duration-filter"
             value={selectedDuration}
             onChange={(e) => setSelectedDuration(e.target.value)}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="rounded-xl border-none bg-slate-100 dark:bg-[#0D1218] px-3.5 py-2 text-xs font-mono font-bold text-slate-900 dark:text-slate-200 outline-none shadow-xs"
           >
             {DURATION_FILTERS.map((d) => (
-              <option key={d} value={d}>
+              <option key={d} value={d} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
                 {d}
               </option>
             ))}
@@ -102,51 +104,32 @@ export default function CatalogueTable({
         </div>
       </div>
 
-      {/* Results Count */}
-      <div className="flex items-center justify-between text-xs text-gray-500 px-1">
-        <span>
-          Showing <strong>{filteredOptions.length}</strong> of {options.length} options
-        </span>
-        {(selectedRisk !== "All" || selectedDuration !== "All") && (
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedRisk("All");
-              setSelectedDuration("All");
-            }}
-            className="text-blue-600 hover:underline font-medium"
-          >
-            Reset Filters
-          </button>
-        )}
-      </div>
-
-      {/* ── Grid of Options ────────────────────────────────────────── */}
+      {/* ── Policy Cards Grid ───────────────────────────────────────── */}
       {filteredOptions.length > 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredOptions.map((opt) => (
             <OptionCard
               key={opt.optionId}
               option={opt}
               recommended={opt.optionId === recommendedOptionId}
               deficitProbability={probabilitiesMap ? probabilitiesMap[opt.optionId] : undefined}
-              suggestedStartDate={opt.optionId === recommendedOptionId ? suggestedStartDate : undefined}
+              suggestedStartDate={suggestedStartDate}
             />
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center text-gray-400">
-          <p className="font-semibold text-gray-700">No options match your filter</p>
-          <p className="mt-1 text-xs text-gray-500">Try selecting a different risk tier or duration window.</p>
+        <div className="rounded-3xl floating-panel p-12 text-center text-slate-500 dark:text-slate-400">
+          <p className="font-bold text-slate-900 dark:text-white">No Policy Options Match Your Filter</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Try resetting the risk or duration filters above.</p>
           <button
             type="button"
             onClick={() => {
               setSelectedRisk("All");
               setSelectedDuration("All");
             }}
-            className="mt-4 rounded-lg bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+            className="mt-4 rounded-xl bg-[#1a5b55] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#22726b] transition"
           >
-            Clear Filters
+            Reset Filters
           </button>
         </div>
       )}

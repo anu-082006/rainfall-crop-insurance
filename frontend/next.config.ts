@@ -7,6 +7,8 @@ if (!process.env.NEXT_TEST_WASM_DIR) {
 }
 
 const nextConfig: NextConfig = {
+  // Disable floating Next.js 15 devTools indicator overlay in development
+  devIndicators: false,
   webpack: (config) => {
     // Disable disk caching on Windows to avoid file-lock EPERM collisions
     config.cache = false;
