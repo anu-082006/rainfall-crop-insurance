@@ -66,7 +66,10 @@ Smallholder agriculture remains acutely vulnerable to climate variability, rainf
 | **Frontend Framework** | [Next.js (App Router)](https://nextjs.org/) | `15.5.28` | React Server Components, client-side routing, and static prerendering |
 | **UI Library** | [React](https://react.dev/) | `19.1.0` | Declarative UI state management and hooks |
 | **Type Safety** | [TypeScript](https://www.typescriptlang.org/) | `5.x` | Strict end-to-end static typing across all modules |
-| **Styling** | [Tailwind CSS](https://tailwindcss.com/) | `v4` | Utility-first responsive design system |
+| **Styling** | [Tailwind CSS](https://tailwindcss.com/) | `v4` | Borderless floating elevation, soft diffuse shadows, dual Light/Dark modes |
+| **Design System** | Pure Dark (`#000000`) & Light (`#FFFFFF`) | Custom | Brand Green `#1a5b55` accents, borderless floating panels & zero harsh outlines |
+| **Typography** | [Google Fonts Montserrat](https://fonts.google.com/specimen/Montserrat) | Variable (`100..700`) | Clean, modern thin typography (`font-weight: 300`) enforced universally |
+| **Vector Artwork** | Custom SVG Illustrations | Native React | Friendly seedling mascot (`CropSproutMascot`) and derived leaf variants (`CropLeaf`, `CropTwinLeaves`) |
 | **Blockchain Client** | [Ethers.js](https://docs.ethers.org/v6/) | `6.13.4` | Direct JSON-RPC and EIP-1193 MetaMask communication (No Wagmi/Viem) |
 | **Smart Contracts** | [Solidity](https://soliditylang.org/) | `0.8.24` | EVM parametric policy logic and ERC-20 token implementation |
 | **Contract Libraries** | [OpenZeppelin Contracts](https://openzeppelin.com/contracts/) | `v5.0.0` | Standard ERC-20 implementation, access control, and math libraries |
@@ -102,12 +105,12 @@ Rainfall_Crop_Insurance/
 │
 ├── frontend/                         # Member 3: Next.js 15 Web3 DApp
 │   ├── app/                          # App Router pages
-│   │   ├── layout.tsx                # Root layout with WalletProvider & global navigation
-│   │   ├── page.tsx                  # Dashboard: active policies, stats, and action prompts
+│   │   ├── layout.tsx                # Root layout with WalletProvider, ThemeProvider & global navigation
+│   │   ├── page.tsx                  # Dashboard: bento grid, settlement pipeline, wallet hub, active policies
 │   │   ├── catalogue/page.tsx        # Catalogue: AI recommendations & 13 policy options
 │   │   ├── enroll/page.tsx           # Enrollment: start date picker, preview, & on-chain enroll
 │   │   ├── policies/[id]/page.tsx    # Policy Detail: 11-field struct, oracle report, & claim button
-│   │   ├── history/page.tsx          # Transaction History: on-chain event ledger
+│   │   ├── history/page.tsx          # Transaction History: on-chain event ledger with dismissible sandbox notice
 │   │   ├── profile/page.tsx          # Farmer Profile: latitude, longitude, crop, and sowing date
 │   │   └── admin/page.tsx            # Admin Panel: restricted contract pool funding controls
 │   ├── components/                   # Modular React UI components
@@ -115,18 +118,20 @@ Rainfall_Crop_Insurance/
 │   │   ├── catalogue/                # OptionCard, CatalogueTable components
 │   │   ├── enrollment/               # StartDatePicker, EnrollReview, TxStatus components
 │   │   ├── history/                  # HistoryTable component with event log parsing
-│   │   ├── layout/                   # Navbar (wallet button, RTT balance), Footer
+│   │   ├── layout/                   # Navbar (wallet button, RTT balance, light/dark toggle), Footer
 │   │   ├── policies/                 # PolicyCard, ClaimButton, RainfallReportCard, ResultCard
+│   │   ├── shared/                   # CropIllustrations (seedling, leaves, sheaf, shields), StatusBadge, ErrorNotice
 │   │   └── wallet/                   # NetworkBanner, WalletButton components
 │   ├── lib/                          # Application logic, adapters, & helpers
+│   │   ├── theme/                    # themeContext.tsx (Light #FFFFFF / Dark #000000 state provider)
 │   │   ├── contract/                 # abi.ts, contractHelpers.ts, catalogueReader.ts, eventIndexer.ts
 │   │   ├── ai/                       # aiClient.ts (FastAPI client)
-│   │   ├── wallet/                   # walletContext.tsx (MetaMask connection & RTT balance)
+│   │   ├── wallet/                   # walletContext.tsx (direct MetaMask EIP-1193 connection & RTT balance)
 │   │   ├── profile/                  # profileStorage.ts (localStorage keying)
 │   │   ├── mock/                     # mockAdapter.ts, mockCatalogue.ts, mockPolicies.ts
 │   │   └── utils/                    # constants.ts, dateHelpers.ts, formatters.ts
 │   ├── .env.example                  # Template for frontend environment variables
-│   ├── package.json                  # Frontend dependencies and npm test script
+│   ├── package.json                  # Frontend dependencies and test script
 │   └── tsconfig.json                 # Strict TypeScript configuration
 │
 ├── backend/ai_api/                   # Member 3: FastAPI AI Recommendation Service
@@ -340,6 +345,11 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 Open a separate terminal window and navigate to `frontend/`:
 ```bash
 cd frontend
+
+# Using Bun (Recommended):
+bun install
+
+# Or using npm:
 npm install
 ```
 
@@ -383,6 +393,10 @@ NEXT_PUBLIC_ADMIN_ADDRESS=
 
 ### 8.4 Start the Next.js Frontend Development Server
 ```bash
+# Using Bun (Recommended):
+bun run dev
+
+# Or using npm:
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) in your web browser.
@@ -412,7 +426,7 @@ To run the complete integrated AgriShield platform, keep **3 terminal sessions**
 │ TERMINAL 3: Next.js Web3 Frontend                                      │
 ├────────────────────────────────────────────────────────────────────────┤
 │ cd frontend                                                            │
-│ npm run dev                                                            │
+│ bun run dev                   # Or: npm run dev                        │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -484,18 +498,23 @@ forge test
 ```
 *Coverage: 35 passing tests verifying catalogue boundaries, Option 0 constraints, full-hour alignment, observation window timing, and claim payouts.*
 
-### 11.2 Frontend Unit & Integration Tests (Node Test Runner)
-Run all 45 automated frontend unit tests:
+### 11.2 Frontend Unit & Integration Tests
+Run all 48 automated frontend unit tests:
 ```bash
 cd frontend
+
+# Using Bun (Recommended):
+bun test
+
+# Or using npm:
 npm test
 ```
 *Test Suites Covered:*
-- `contractLayer.test.ts`: Policy status derivation rules (RPD Section 8), custom error mapping, and catalogue integrity.
-- `eventIndexer.test.ts`: Transaction history indexing, event schema validation, and chronological ordering.
-- `profileStorage.test.ts`: Geographic coordinate validation, supported crop checks, and wallet-isolated storage.
-- `dateHelpers.test.ts`: UTC midnight alignment, full-hour checks, and computed coverage end-time previews.
-- `aiClient.test.ts`: Schema candidate mapping and resilient offline fallback handling.
+- `contractLayer.test.ts`: Policy status derivation rules (RPD Section 8), custom error mapping, and catalogue integrity (23 tests).
+- `eventIndexer.test.ts`: Transaction history indexing, event schema validation, and chronological ordering (4 tests).
+- `profileStorage.test.ts`: Geographic coordinate validation, supported crop checks, and wallet-isolated storage (8 tests).
+- `dateHelpers.test.ts`: UTC midnight alignment, full-hour checks, and computed coverage end-time previews (11 tests).
+- `aiClient.test.ts`: Schema candidate mapping and resilient offline fallback handling (2 tests).
 
 ### 11.3 TypeScript Compilation Check
 Verify static typing across the entire frontend application:
@@ -578,13 +597,15 @@ python -m pytest tests/ -v
 | **Machine Learning** | Calibrated Random Forest Model | **Complete** | Verified with 8 ML tests; 34.8 MB joblib serialized |
 | **AI Backend** | FastAPI Recommendation API (`/recommend`) | **Complete** | Verified via `pytest` (9 tests) & live curl check |
 | **AI Backend** | Production ML Model Serving | **Complete** | Verified loading `random_forest` (v`1.0-production`) |
-| **Frontend** | MetaMask EIP-1193 Wallet Connection | **Complete** | Verified with Anvil Local auto-detection |
+| **Frontend** | MetaMask EIP-1193 Direct Extension Popup | **Complete** | Verified immediate browser extension trigger without external tab redirects |
+| **Frontend** | Design System & Dark / Light Theming | **Complete** | Pure Black (`#000000`), Pure White (`#FFFFFF`), `#1a5b55` accents, and borderless floating elevation |
+| **Frontend** | Custom Crop & Leaf Vector Illustrations | **Complete** | Seedling mascot (`CropSproutMascot`) and derived leaf variants (`CropLeaf`, `CropTwinLeaves`) |
 | **Frontend** | Farmer Profile Management | **Complete** | Verified with localStorage wallet-specific keying |
 | **Frontend** | Live Catalogue & AI Recommendation Display | **Complete** | Verified reading on-chain terms from Anvil |
 | **Frontend** | On-Chain Policy Enrollment Submission | **Complete** | Verified with Ethers v6 signer transaction submission |
 | **Frontend** | Dynamic Policy Status Derivation | **Complete** | Verified across all 7 RPD Section 8 rules |
-| **Frontend** | On-Chain Event History Ledger | **Complete** | Verified with Ethers `queryFilter()` indexing |
-| **Frontend** | Unit & Contract Layer Test Suite | **Complete** | Verified with 45 passing tests across 11 suites |
+| **Frontend** | On-Chain Event History Ledger | **Complete** | Verified with Ethers `queryFilter()` indexing & dismissible sandbox notice |
+| **Frontend** | Unit & Contract Layer Test Suite | **Complete** | Verified with 48 passing tests across 5 suites |
 | **Oracle Pipeline** | Local CRE Simulator Reporting | **Tested Locally** | Verified via `@chainlink/cre-sdk` local broadcast |
 | **Oracle Pipeline** | Decentralized Mainnet DON Execution | *Pending Deployment* | Awaiting mainnet Chainlink CRE production DON |
 
